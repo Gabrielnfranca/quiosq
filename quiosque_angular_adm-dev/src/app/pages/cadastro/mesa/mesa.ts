@@ -93,10 +93,10 @@ export class Mesa implements OnInit {
     @ViewChild('dt') dt!: Table;
 
     first: number = 0;
-    rows: number = 50;
+    rows: number = 200;
     totalRecords: number = 0;
     page: number = 0;
-    pageSize: number = 50;
+    pageSize: number = 200;
 
     mesasAgrupadas = computed(() => {
         const grupos = new Map<string, MesaModel[]>();
