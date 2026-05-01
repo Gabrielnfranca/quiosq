@@ -272,6 +272,41 @@ export class Mesa implements OnInit {
         });
     }
 
+    deleteGrupo(grupo: any) {
+        if (!grupo.mesas || grupo.mesas.length === 0) return;
+
+        this.confirmationService.confirm({
+            message: `Tem certeza que deseja excluir todas as ${grupo.mesas.length} mesas do garçom ${grupo.garcom}?`,
+            header: 'Confirmação de Exclusão',
+            icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Sim, excluir',
+            rejectLabel: 'Cancelar',
+            acceptButtonStyleClass: 'p-button-danger',
+            accept: () => {
+                this.loadingService.show();
+                const ids = grupo.mesas.map((m: any) => m.id).filter((id: any) => id);
+                
+                this.mesaService.deleteBatch(ids).subscribe({
+                    next: () => {
+                        this.loadingService.hide();
+                        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: `Mesas do garçom ${grupo.garcom} excluídas`, life: 3000 });
+                        
+                        const attSelecoes = new Set(this.mesasSelecionadas());
+                        ids.forEach((id: string) => attSelecoes.delete(id));
+                        this.mesasSelecionadas.set(attSelecoes);
+                        if (attSelecoes.size === 0) this.modoExclusao.set(false);
+
+                        this.loadData();
+                    },
+                    error: (error) => {
+                        this.loadingService.hide();
+                        this.messageService.add({ severity: 'error', summary: 'Erro', detail: error?.error?.message || 'Erro ao excluir mesas', life: 3000 });
+                    }
+                });
+            }
+        });
+    }
+
     deleteAllMesasConfirmation() {
         this.confirmationService.confirm({
             message: 'Tem certeza que deseja excluir TODAS as mesas do quiosque?',

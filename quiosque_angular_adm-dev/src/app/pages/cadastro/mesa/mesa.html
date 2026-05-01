@@ -35,6 +35,7 @@
                     <span class="text-xl font-bold text-primary break-all">{{ grupo.garcom }}</span>
                     <div class="flex items-center gap-2 ml-auto">
                         <p-button icon="pi pi-print" size="small" severity="secondary" rounded="true" pTooltip="Imprimir QR Codes" tooltipPosition="top" (click)="openBatchQrCode(grupo)"></p-button>
+                        <p-button icon="pi pi-trash" size="small" severity="danger" [outlined]="true" rounded="true" pTooltip="Excluir mesas do garçom" tooltipPosition="top" (click)="deleteGrupo(grupo)"></p-button>
                         <p-tag [value]="grupo.mesas.length + ' mesas'" severity="info"></p-tag>
                     </div>
                 </div>
