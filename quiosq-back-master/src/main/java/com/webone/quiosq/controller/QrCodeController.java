@@ -22,7 +22,7 @@ public class QrCodeController {
 
     @GetMapping("/{mesaId}/{quiosqueId}")
     public ResponseEntity<QrCodeGenerateResponse> create(
-        @PathVariable("mesaId") Long mesaId,
+        @PathVariable("mesaId") UUID mesaId,
         @PathVariable("quiosqueId") UUID quiosqueId)
         throws IOException, WriterException {
         return new ResponseEntity<>(

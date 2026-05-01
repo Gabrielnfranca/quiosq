@@ -19,12 +19,12 @@ public class JwtService {
     private final String secret = "u8Fz9kLhQ2mX7pR1tYwZ3sV6nBqD4jH5cT7vX9yL2mN0aP3rQ5uW8xZ1cE4fG7hJ";
 
 
-    public String generateClientWithoutExpiration(UUID quiosqueId, Long mesaId) {
+    public String generateClientWithoutExpiration(UUID quiosqueId, UUID mesaId) {
         return Jwts.builder()
             .setSubject("visitante")
             .claim("role", "cliente")
             .claim("quiosque_id", quiosqueId.toString())
-            .claim("mesa", mesaId)
+            .claim("mesa", mesaId.toString())
             .signWith(Keys.hmacShaKeyFor(secret.getBytes()), SignatureAlgorithm.HS256)
             .compact();
     }
@@ -66,7 +66,10 @@ public class JwtService {
             JwtPayload p = new JwtPayload();
             p.setSubject(c.getSubject());
             p.setRole((String) c.get("role"));
-            p.setMesaId((Integer) c.get("mesa"));
+            Object mesaObj = c.get("mesa");
+            if (mesaObj != null) {
+                p.setMesaId(UUID.fromString(mesaObj.toString()));
+            }
             p.setQuiosqueId(UUID.fromString((String) c.get("quiosque_id")));
             p.setRoles((List<String>) c.getOrDefault("roles", List.of()));
             List<String> qs = (List<String>) c.getOrDefault("quiosques", List.of());

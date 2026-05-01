@@ -1,4 +1,4 @@
-<div class="card">
+﻿<div class="card">
     <p-toast></p-toast>
     
     <p-panel styleClass="mb-6">
@@ -31,9 +31,12 @@
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-4">
         @for (grupo of mesasAgrupadas(); track grupo.garcom) {
             <div class="border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 rounded-xl shadow-sm p-4">
-                <div class="flex justify-between items-center mb-4 border-b border-surface-200 dark:border-surface-700 pb-3">
-                    <span class="text-xl font-bold text-primary">{{ grupo.garcom }}</span>
-                    <p-tag [value]="grupo.mesas.length + ' mesas'" severity="info"></p-tag>
+                <div class="flex flex-wrap justify-between items-center gap-2 mb-4 border-b border-surface-200 dark:border-surface-700 pb-3">
+                    <span class="text-xl font-bold text-primary break-all">{{ grupo.garcom }}</span>
+                    <div class="flex items-center gap-2 ml-auto">
+                        <p-button icon="pi pi-print" size="small" severity="secondary" rounded="true" pTooltip="Imprimir QR Codes" tooltipPosition="top" (click)="openBatchQrCode(grupo)"></p-button>
+                        <p-tag [value]="grupo.mesas.length + ' mesas'" severity="info"></p-tag>
+                    </div>
                 </div>
                 <div class="flex flex-wrap gap-3">
                     @for (mesa of grupo.mesas; track mesa.id) {
@@ -77,61 +80,83 @@
                             é requerido.</small>
                     </div>
                     <div>
-                        <label for="description" class="block font-bold mb-3">Garcom</label>
+                        <label for="description" class="block font-bold mb-3">Garçom</label>
                         <p-select id="state" formControlName="garcom" [options]="dropdownItems"
                             optionLabel="nome" placeholder="Selecione um garçom" styleClass="w-full" appendTo="body" />
                         <small class="text-red-500"
-                            *ngIf="form.get('garcom')?.hasError('required') && (form.get('garcom')?.dirty || form.get('garcom')?.touched)">Garcom
+                            *ngIf="form.get('garcom')?.hasError('required') && (form.get('garcom')?.dirty || form.get('garcom')?.touched)">Garçom
                             é requerido.</small>
-                        <small class="text-red-500"
-                            *ngIf="form.get('numero')?.hasError('invalidNumero') && (form.get('numero')?.dirty || form.get('numero')?.touched)">Número
-                            inválido.</small>
                     </div>
                 </div>
             </form>
 
-            <form [formGroup]="formLote" *ngIf="isLote && salvar">
-                <div class="flex flex-col gap-6">
-                    <div class="flex gap-4">
-                        <div class="flex-1">
-                            <label for="numeroInicial" class="block font-bold mb-3">Número Inicial</label>
-                            <input pInputText type="number" id="numeroInicial" formControlName="numeroInicial" required autofocus fluid placeholder="Ex: 1" />
-                        </div>
-                        <div class="flex-1">
-                            <label for="numeroFinal" class="block font-bold mb-3">Número Final</label>
-                            <input pInputText type="number" id="numeroFinal" formControlName="numeroFinal" required fluid placeholder="Ex: 20" />
-                        </div>
+            <div *ngIf="isLote && salvar" [formGroup]="formLote" class="flex flex-col gap-6">
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label for="numeroInicial" class="block font-bold mb-3">Número Inicial</label>
+                        <input pInputText type="number" id="numeroInicial" formControlName="numeroInicial" required autofocus fluid placeholder="Ex: 1" />
                     </div>
-                    <div>
-                        <label for="garcomLote" class="block font-bold mb-3">Garçom Padrão (Opcional)</label>
-                        <p-select id="garcomLote" formControlName="garcom" [options]="dropdownItems" optionLabel="nome" placeholder="Selecione um garçom" styleClass="w-full" appendTo="body" />
+                    <div class="flex-1">
+                        <label for="numeroFinal" class="block font-bold mb-3">Número Final</label>
+                        <input pInputText type="number" id="numeroFinal" formControlName="numeroFinal" required fluid placeholder="Ex: 20" />
                     </div>
                 </div>
-            </form>
+                <div>
+                    <label for="garcomLote" class="block font-bold mb-3">Garçom Padrão (Opcional)</label>
+                    <p-select id="garcomLote" formControlName="garcom" [options]="dropdownItems" optionLabel="nome" placeholder="Selecione um garçom" styleClass="w-full" appendTo="body" />
+                </div>
+            </div>
         </ng-template>
 
         <ng-template #footer>
-            <p-button label="Cancel" icon="pi pi-times" text (click)="hideDialog()" />
-            @if (salvar) {
-            <p-button label="Save" icon="pi pi-check" (click)="saveMesa()" [disabled]="(isLote && formLote.invalid) || (!isLote && form.invalid)" />
-            }
-            @if (!salvar) {
-                <p-button label="Excluir" severity="danger" icon="pi pi-trash" (click)="deleteMesa(mesa)" />
-                <p-button label="Editar" icon="pi pi-check" (click)="updateMesa()" />
-            }
+            <div class="flex flex-wrap justify-between w-full gap-2">
+                <p-button label="Cancelar" icon="pi pi-times" text (click)="hideDialog()" />
+                <div class="flex flex-wrap gap-2">
+                    @if (salvar) {
+                        <p-button label="Salvar" icon="pi pi-check" (click)="saveMesa()" [disabled]="(isLote && formLote.invalid) || (!isLote && form.invalid)" />
+                    }
+                    @if (!salvar) {
+                        <p-button label="Gerar QR Code" icon="pi pi-qrcode" severity="info" styleClass="w-auto whitespace-nowrap" (click)="openQrCode(mesa)"></p-button>
+                        <p-button label="Excluir" severity="danger" icon="pi pi-trash" (click)="deleteMesa(mesa)" />
+                        <p-button label="Editar" icon="pi pi-check" (click)="updateMesa()" />
+                    }
+                </div>
+            </div>
         </ng-template>
     </p-dialog>
+    
+    <p-dialog [(visible)]="qrCodeDialog" [style]="{ width: '400px', 'max-width': '95vw' }" header="Imprimir QR Code" [modal]="true">
+        <div class="flex flex-col items-center p-2 sm:p-4">
+            <div *ngIf="modoImpressao === 'single' && mesasParaImprimir.length > 0" class="text-center mb-4">
+                <h3 class="text-xl font-bold mb-2">Mesa {{mesasParaImprimir[0].mesa.numero}}</h3>
+            </div>
+            
+            <div *ngIf="modoImpressao === 'batch'" class="text-center mb-4">
+                <h3 class="text-xl font-bold mb-2">Lote: {{mesasParaImprimir.length}} Mesas</h3>
+                <p class="text-surface-500 text-sm">Os QR Codes serão organizados em grade na folha de impressão.</p>
+            </div>
+
+            <div class="w-full mt-4 mb-6">
+                <label class="block font-bold mb-3 text-center">Tamanho do Impresso</label>
+                <div class="flex flex-col gap-3 ml-4 sm:ml-8">
+                    <div class="flex items-center">
+                        <p-radioButton name="tamanho" value="small" [(ngModel)]="printTamanho" inputId="tP"></p-radioButton>
+                        <label for="tP" class="ml-2 cursor-pointer">Pequeno (Mesa)</label>
+                    </div>
+                    <div class="flex items-center">
+                        <p-radioButton name="tamanho" value="medium" [(ngModel)]="printTamanho" inputId="tM"></p-radioButton>
+                        <label for="tM" class="ml-2 cursor-pointer">Médio (Acrílico)</label>
+                    </div>
+                    <div class="flex items-center">
+                        <p-radioButton name="tamanho" value="large" [(ngModel)]="printTamanho" inputId="tG"></p-radioButton>
+                        <label for="tG" class="ml-2 cursor-pointer">Grande (A4)</label>
+                    </div>
+                </div>
+            </div>
+
+            <p-button label="Confirmar Impressão" icon="pi pi-print" (click)="printQrCode()" size="large" styleClass="w-full" class="w-full mt-2 block"></p-button>
+        </div>
+    </p-dialog>
+
     <p-confirmDialog [style]="{ width: '450px' }" />
 </div>
-
-
-
-
-
-
-
-
-
-
-
-

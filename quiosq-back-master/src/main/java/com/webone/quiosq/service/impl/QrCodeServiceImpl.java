@@ -19,7 +19,7 @@ public class QrCodeServiceImpl implements QrCodeService {
     private final JwtService jwtService;
 
     @Override
-    public QrCodeGenerateResponse generateAndUploadQrCode(UUID quisoqueId, Long mesaId)
+    public QrCodeGenerateResponse generateAndUploadQrCode(UUID quisoqueId, UUID mesaId)
         throws WriterException, IOException {
         jwtService.generateClientWithoutExpiration(quisoqueId,mesaId);
         return service.generateAndUploadQrCode(String.format("?me=%s", jwtService.generateClientWithoutExpiration(quisoqueId,mesaId)));
