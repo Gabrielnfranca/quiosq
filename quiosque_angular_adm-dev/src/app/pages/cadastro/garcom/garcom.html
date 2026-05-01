@@ -1,0 +1,129 @@
+<p-toast />
+<p-panel styleClass="mb-6">
+    <ng-template #header>
+        <div class="flex items-center gap-2">
+            <p-avatar image="https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png" shape="circle" />
+            <span class="text-2xl font-bold">Cadastro de Garçons</span>
+        </div>
+    </ng-template>
+</p-panel>
+
+<p-toolbar styleClass="mb-6">
+    <ng-template #start>
+        <p-button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
+    </ng-template>
+</p-toolbar>
+
+<p-table #dt [value]="garcons()" [rows]="10"  stripedRows 
+    [globalFilterFields]="['nome', 'cpf']"
+    [tableStyle]="{ 'min-width': '75rem' }" [rowHover]="true" dataKey="id"
+  
+    [rowsPerPageOptions]="[10]">
+    <ng-template #caption>
+        <form [formGroup]="formSearch">
+                    <div class="flex justify-between items-center flex-column sm:flex-row">
+                            <p-iconfield iconPosition="left" class="ml-auto">
+                                <p-inputicon>
+                                    <i class="pi pi-search"></i>
+                                </p-inputicon>
+                                <input pInputText type="text" formControlName="search" placeholder="Procure por nome ou cpf" />
+                                  <p-inputicon *ngIf="form.get('search')?.value" class="pi pi-times" (click)="clearSearch()" />
+                            </p-iconfield>
+                     </div>
+                </form>
+    </ng-template>
+    <ng-template #header>
+        <tr>
+            <th pSortableColumn="nome" style="min-width:16rem">
+                Nome
+                <p-sortIcon field="nome" />
+            </th>
+  
+            <th pSortableColumn="cpf" style="min-width:10rem">
+                Cpf
+                <p-sortIcon field="cpf" />
+            </th>
+            <th pSortableColumn="status" style="min-width: 12rem">
+                Status
+                <p-sortIcon field="status" />
+            </th>
+            <th style="min-width: 12rem"></th>
+        </tr>
+    </ng-template>
+    <ng-template #body let-garcom>
+        <tr>
+            <td style="min-width: 16rem">{{ garcom.nome | uppercase }}</td>
+            <td style="min-width: 10rem">{{ garcom.cpf }}</td>
+            <td>
+                <p-tag [value]="getStatusName(garcom.status)" [severity]="getSeverity(garcom.status)" />   
+            </td>
+            <td>
+                <p-button *ngIf="garcom.status" icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true"
+                    (click)="editGarcom(garcom)" />
+                <p-button *ngIf="!garcom.status" icon="pi pi-check" severity="success" [rounded]="true" [outlined]="true"
+                    (click)="activateGarcom(garcom)" />
+                <p-button *ngIf="garcom.status" icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true"
+                    (click)="deleteSelectedGarcons(garcom.id)" />
+            </td>
+        </tr>
+    </ng-template>
+     <ng-template #footer *ngIf="garcons().length === 0">
+        <tr>
+            <td colspan="4" class="text-center">Nenhum garçom encontrado.</td>
+        </tr>
+    </ng-template>
+</p-table>
+ <p-paginator (onPageChange)="onPageChange($event)" 
+            [first]="first" [rows]="rows" 
+            [totalRecords]="totalRecords"  />
+
+<p-dialog [(visible)]="garcomDialog" [style]="{ width: '450px' }" header="Novo Garçom" [modal]="true">
+    <ng-template #content>
+        <form [formGroup]="form">
+            <div class="flex flex-col gap-6">
+                <div>
+                    <label for="name" class="block font-bold mb-3">Nome</label>
+                    <input maxlength="255" type="text" pInputText id="name" formControlName="nome" required autofocus fluid placeholder="Digite o nome" />
+                    <small class="text-red-500" *ngIf="form.get('nome')?.invalid && (form.get('nome')?.dirty || form.get('nome')?.touched)">Nome é requerido.</small>
+                </div>
+                    <div>
+                    <label for="description" class="block font-bold mb-3">Cpf</label>
+                    <input type="text" pInputText id="description" formControlName="cpf" required autofocus
+                        fluid mask="000.000.000-00" placeholder="Digite o cpf" />
+                    <small class="text-red-500 block mt-1" *ngIf="form.get('cpf')?.hasError('required') && (form.get('cpf')?.dirty || form.get('cpf')?.touched)">Cpf é requerido.</small>
+                    <small class="text-red-500 block mt-1" *ngIf="form.get('cpf')?.hasError('invalidCpf') && (form.get('cpf')?.dirty || form.get('cpf')?.touched)">Cpf inválido.</small>
+                    <small class="text-red-500 block mt-1" *ngIf="form.get('cpf')?.hasError('cpfExists')">Este CPF já está em uso por outro garçom.</small>
+                </div>
+            </div>
+        </form>
+    </ng-template>
+
+    <ng-template #footer>
+        <p-button label="Cancel" icon="pi pi-times" text (click)="hideDialog()" />
+        <p-button label="Save" icon="pi pi-check" (click)="saveGarcom()" [disabled]="form.invalid" />
+    </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="garcomEdit" [style]="{ width: '450px' }" header="Editar Garçom" [modal]="true">
+    <ng-template #content>
+        <form [formGroup]="form">
+            <div class="flex flex-col gap-6">
+                <div>
+                    <label for="name" class="block font-bold mb-3">Nome</label>
+                    <input maxlength="255" type="text" pInputText id="name" formControlName="nome" required autofocus fluid placeholder="Digite o nome" />
+                    <small class="text-red-500" *ngIf="form.get('nome')?.invalid && (form.get('nome')?.dirty || form.get('nome')?.touched)">Nome é requerido.</small>
+                </div>
+            </div>
+        </form>
+    </ng-template>
+
+    <ng-template #footer>
+        <p-button label="Cancel" icon="pi pi-times" text (click)="hideEditDialog()" />
+        <p-button label="Editar" icon="pi pi-check" (click)="editarGarcom(garcom)" [disabled]="form.invalid" />
+    </ng-template>
+</p-dialog>
+
+<app-garcom-delete-dialog 
+(garcomDeleteEvent)="deleteGarcom($event)"
+[(garcomDelete)]="garcomDelete" [garcomDeleteId]="garcomDeleteId"  />
+<p-confirmdialog [style]="{ width: '450px' }" />

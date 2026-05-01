@@ -1,0 +1,179 @@
+<p-toast />
+<p-panel styleClass="mb-6">
+    <ng-template #header>
+        <div class="flex items-center gap-2">
+            <span class="text-2xl font-bold">Listagem de Pedidos</span>
+        </div>
+    </ng-template>
+</p-panel>
+
+<p-table #dt [value]="pedidos()" [rows]="10" stripedRows
+    [globalFilterFields]="['codigo']"
+    [tableStyle]="{ 'min-width': '75rem' }" [rowHover]="true" dataKey="id"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [loading]="loading()">
+    
+    <ng-template pTemplate="caption">
+        <form [formGroup]="form">
+                    <div class="flex justify-between items-center flex-column sm:flex-row">
+                            <p-iconfield iconPosition="left" class="ml-auto">
+                                <p-inputicon>
+                                    <i class="pi pi-search"></i>
+                                </p-inputicon>
+                                <input class="w-[20rem]" pInputText type="text" formControlName="search" placeholder="Procure por codigo ou cliente" />
+                                  <p-inputicon *ngIf="form.get('search')?.value" class="pi pi-times" (click)="clearSearch()" />
+                            </p-iconfield>
+                     </div>
+                </form>
+    </ng-template>
+
+    <ng-template pTemplate="header">
+        <tr>
+            <th style="width: 5rem"></th>
+            <th pSortableColumn="codigo" style="min-width:10rem">
+                Código
+                <p-sortIcon field="codigo" />
+            </th>
+            <th pSortableColumn="nomePedido" style="min-width:16rem">
+                Cliente
+                <p-sortIcon field="nomePedido" />
+            </th>
+             <th pSortableColumn="cliente" style="min-width:16rem">
+                Telefone
+                <p-sortIcon field="cliente" />
+            </th>
+            <th pSortableColumn="mesa" style="min-width:8rem">
+                Mesa
+                <p-sortIcon field="mesa" />
+            </th>
+             <th pSortableColumn="total" style="min-width:8rem">
+                Total
+                <p-sortIcon field="total" />
+            </th>
+            <th pSortableColumn="dataInit" style="min-width:12rem">
+                Data/Hora Início
+                <p-sortIcon field="dataInit" /> 
+            </th>
+             <th pSortableColumn="dataFim" style="min-width:12rem">
+                Data/Hora conclusão
+                <p-sortIcon field="dataFim" /> 
+            </th>
+            <th pSortableColumn="status" style="min-width: 12rem">
+                Status
+                <p-sortIcon field="status" />
+            </th>
+            <th style="min-width: 12rem">
+                Tempo de Preparo
+            </th>
+            <th style="min-width: 12rem">Ações</th>
+        </tr>
+    </ng-template>
+    <ng-template #body pTemplate="body" let-pedido let-expanded="expanded">
+        <tr>
+            <td>
+                <button type="button" pButton pRipple [pRowToggler]="pedido" class="p-button-text p-button-rounded p-button-plain" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></button>
+            </td>
+            <td>#{{ pedido.codigo }}</td>
+            <td>{{ pedido.nomePedido }}</td>
+            <td>{{ pedido.cliente | phone }}</td>
+            <td>Mesa: &nbsp;{{ pedido.mesa }}</td>
+            <td>{{ pedido.total | currency:'BRL' }}</td>
+            <td>{{ pedido.dataInit | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ pedido.dataFim | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+                <p-tag [value]="returnStatus(pedido.status)" [severity]="getSeverity(pedido.status)" />
+            </td>
+            <td>
+                <span class="font-bold text-lg">{{ pedido.dataInit | timeElapsed : now() : pedido.status : pedido.dataContagem: pedido.dataFim }}</span>
+            </td>
+            <td>
+                 @if (pedido.status === 'awaiting_preparation') {
+                     <p-button
+                    label="Iniciar Preparação" 
+                    icon="pi pi-spinner" 
+                    severity="success" 
+                    [rounded]="true" 
+                    [outlined]="true"
+                    class="mr-2"
+                    (click)="updateStatus(pedido, 'EM_PREPARACAO')" />
+                }
+                 @if (pedido.status === 'preparing') {
+                     <p-button
+                    label="Concluir" 
+                    icon="pi pi-check" 
+                    severity="success" 
+                    [rounded]="true" 
+                    [outlined]="true"
+                    class="mr-2"
+                    (click)="updateStatus(pedido, 'PRONTO')" />
+                }
+                 @if (pedido.status === 'ready') {
+                     <p-button
+                    label="Iniciar Entrega" 
+                    icon="pi pi-truck" 
+                    severity="success" 
+                    [rounded]="true" 
+                    [outlined]="true"
+                    class="mr-2"
+                    (click)="updateStatus(pedido, 'EM_ENTREGA')" />
+                }
+                @if (pedido.status === 'delivering') {
+                     <p-button
+                    label="Entregue" 
+                    icon="pi pi-check" 
+                    severity="success" 
+                    [rounded]="true" 
+                    [outlined]="true"
+                    class="mr-2"
+                    (click)="updateStatus(pedido, 'ENTREGUE')" />
+                }
+               
+            
+            </td>
+        </tr>
+    </ng-template>
+    <ng-template #expandedrow pTemplate="rowexpansion" let-pedido>
+        <tr>
+            <td colspan="7">
+                <div class="p-3">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 border-round surface-100">
+                        <div class="flex flex-column gap-2">
+                            <span class="font-bold text-lg">Itens:</span>
+                        </div>
+                        <div class="flex flex-column gap-2" *ngIf="pedido.observacoes">
+                            <span class="font-bold text-lg">Observações</span>
+                            <div class="flex align-items-center gap-2">
+                                <i class="pi pi-info-circle text-primary"></i>
+                                <span>{{ pedido.observacoes }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p-table [value]="pedido.itens" dataKey="id" styleClass="p-datatable-sm">
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th>Produto</th>
+                                 <th>Categoria</th>
+                                <th>Quantidade</th>
+                                <th>Preço Unitário</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-item>
+                            <tr>
+                                <td>{{ item.descricao }}</td>
+                                <td>{{ item.categoria }}</td>
+                                <td>{{ item.quantidade }}</td>
+                                <td>{{ item.preco | currency:'BRL' }}</td>
+                               
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+            </td>
+        </tr>
+    </ng-template>
+</p-table>
+<p-paginator (onPageChange)="onPageChange($event)" 
+            [first]="first" [rows]="rows" 
+            [totalRecords]="totalRecords"  />
+  

@@ -1,0 +1,65 @@
+<div class="card">
+    <p-toast></p-toast>
+    <p-toolbar styleClass="mb-4 gap-2">
+        <ng-template pTemplate="left">
+            <p-button pRipple severity="success" label="Novo" icon="pi pi-plus" class="mr-2" (click)="openNew()" />
+        </ng-template>
+    </p-toolbar>
+
+    <p-table [value]="categorias()">
+        <ng-template pTemplate="header">
+            <tr>
+                <th pSortableColumn="descricao" style="min-width:10rem">
+                    Descrição <p-sortIcon field="descricao"></p-sortIcon>
+                </th>
+                <th>Ações</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-categoria>
+            <tr>
+                <td>{{ categoria.descricao }}</td>
+                <td>
+                    <div class="flex justify-content-end gap-2">
+                        <p-button pRipple icon="pi pi-pencil" [rounded]="true" [outlined]="true" severity="success"
+                            (click)="editCategoria(categoria)" />
+                        <p-button pRipple icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true"
+                            (click)="deleteCategoria(categoria)" />
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <p-dialog [(visible)]="dialogVisible" [style]="{ width: '450px' }" [header]="'Nova Categoria'" [modal]="true">
+        <ng-template #content>
+            <form [formGroup]="form">
+                <div class="flex flex-column gap-4">
+                    <div class="w-full">
+                        <label for="descricao" class="block font-bold mb-2">Descrição</label>
+                        <p-iconfield iconPosition="left">
+                            <p-inputicon styleClass="pi pi-tag" />
+                            <input type="text" pInputText id="descricao" formControlName="descricao"
+                                placeholder="Descrição da Categoria" required autofocus class="w-full" />
+                        </p-iconfield>
+                        <small class="p-error block mt-1"
+                            *ngIf=" (form.get('descricao')?.dirty || form.get('descricao')?.touched) && form.get('descricao')?.invalid">Descrição
+                            é requerida.</small>
+                    </div>
+                </div>
+            </form>
+        </ng-template>
+
+        <ng-template #footer>
+            <p-button label="Cancel" icon="pi pi-times" text (click)="hideDialog()" />
+            @if(!btnUpdate) {
+                <p-button label="Save" icon="pi pi-check" (click)="confirmSave()" [disabled]="form.invalid" />
+            }
+            @if(btnUpdate) {
+                <p-button label="Update" icon="pi pi-check" (click)="updateCategoria()" [disabled]="form.invalid" />
+            }
+        </ng-template>
+    </p-dialog>
+
+
+    <p-confirmDialog [style]="{ width: '450px' }" />
+</div>

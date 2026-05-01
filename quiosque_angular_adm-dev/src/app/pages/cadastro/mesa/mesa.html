@@ -1,0 +1,137 @@
+<div class="card">
+    <p-toast></p-toast>
+    
+    <p-panel styleClass="mb-6">
+        <ng-template #header>
+            <div class="flex items-center gap-2">
+                <p-avatar image="https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png" shape="circle" />
+                <span class="text-2xl font-bold">Cadastro de Mesas</span>
+            </div>
+        </ng-template>
+    </p-panel>
+
+    <p-toolbar styleClass="mb-4 gap-2">
+        <ng-template pTemplate="left">
+            @if (!modoExclusao()) {
+                <p-button pRipple severity="success" label="Novo" icon="pi pi-plus" class="mr-2" (click)="openNew()" />
+            }
+            
+            <p-toggleButton [ngModel]="modoExclusao()" (ngModelChange)="onModoExclusaoChange($event)" onLabel="Modo Seleção" offLabel="Modo Seleção" onIcon="pi pi-check" offIcon="pi pi-check-circle" styleClass="p-button-warning" [class.ml-2]="!modoExclusao()"></p-toggleButton>
+            
+            @if (modoExclusao()) {
+                @if (mesasSelecionadas().size > 0) {
+                    <p-button pRipple severity="danger" label="Apagar ({{mesasSelecionadas().size}})" icon="pi pi-trash" class="ml-2" (click)="deleteSelecionadas()" />
+                } @else {
+                    <p-button pRipple severity="danger" label="Excluir Todas" icon="pi pi-trash" class="ml-2" (click)="deleteAllMesasConfirmation()" />
+                }
+            }
+        </ng-template>
+    </p-toolbar>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-4">
+        @for (grupo of mesasAgrupadas(); track grupo.garcom) {
+            <div class="border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 rounded-xl shadow-sm p-4">
+                <div class="flex justify-between items-center mb-4 border-b border-surface-200 dark:border-surface-700 pb-3">
+                    <span class="text-xl font-bold text-primary">{{ grupo.garcom }}</span>
+                    <p-tag [value]="grupo.mesas.length + ' mesas'" severity="info"></p-tag>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    @for (mesa of grupo.mesas; track mesa.id) {
+                        <div class="flex items-center justify-center bg-surface-100 hover:bg-surface-200 dark:bg-surface-800 dark:hover:bg-surface-700 border border-surface-200 dark:border-surface-700 rounded-lg cursor-pointer transition-colors shadow-sm" [ngClass]="{'ring-2 ring-red-500 bg-red-50 dark:bg-red-900/20': mesa.id && mesasSelecionadas().has($any(mesa.id))}"
+                             style="width: 4.5rem; height: 4.5rem;"
+                             (click)="editMesa(mesa)">
+                            <div class="flex flex-col items-center relative w-full h-full justify-center">
+                                @if (modoExclusao()) {
+                                    <div class="absolute top-1 right-1">
+                                        <i class="pi pi-circle-fill text-xs" [ngClass]="mesa.id && mesasSelecionadas().has($any(mesa.id)) ? 'text-red-500' : 'text-surface-300'"></i>
+                                    </div>
+                                }
+                                <span class="font-bold text-xl mb-1 text-surface-900 dark:text-surface-0">{{ mesa.numero }}</span>
+                                @if (!modoExclusao()) {
+                                    <i class="pi pi-pencil text-xs text-surface-500"></i>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <p-paginator (onPageChange)="onPageChange($event)" [first]="first" [rows]="rows" [totalRecords]="totalRecords" />
+
+    <p-dialog [(visible)]="mesaDialog" [style]="{ width: '450px' }" [header]="tituloDialog" [modal]="true">
+        <ng-template #content>
+            <div class="flex items-center gap-2 mb-4" *ngIf="salvar">
+                <p-checkbox [(ngModel)]="isLote" [binary]="true" inputId="isLoteCheckbox" (onChange)="toggleLoteMode()"></p-checkbox>
+                <label for="isLoteCheckbox" class="font-bold cursor-pointer">Adicionar Mesas em Lote</label>
+            </div>
+            <form [formGroup]="form" *ngIf="!isLote">
+                <div class="flex flex-col gap-6">
+                    <div>
+                        <label for="numero" class="block font-bold mb-3">Número</label>
+                        <input maxlength="3" pInputText type="number" id="numero" formControlName="numero" required
+                            autofocus fluid placeholder="Digite o número" />
+                        <small class="text-red-500"
+                            *ngIf="form.get('numero')?.hasError('required') && (form.get('numero')?.dirty || form.get('numero')?.touched)">Número
+                            é requerido.</small>
+                    </div>
+                    <div>
+                        <label for="description" class="block font-bold mb-3">Garcom</label>
+                        <p-select id="state" formControlName="garcom" [options]="dropdownItems"
+                            optionLabel="nome" placeholder="Selecione um garçom" styleClass="w-full" appendTo="body" />
+                        <small class="text-red-500"
+                            *ngIf="form.get('garcom')?.hasError('required') && (form.get('garcom')?.dirty || form.get('garcom')?.touched)">Garcom
+                            é requerido.</small>
+                        <small class="text-red-500"
+                            *ngIf="form.get('numero')?.hasError('invalidNumero') && (form.get('numero')?.dirty || form.get('numero')?.touched)">Número
+                            inválido.</small>
+                    </div>
+                </div>
+            </form>
+
+            <form [formGroup]="formLote" *ngIf="isLote && salvar">
+                <div class="flex flex-col gap-6">
+                    <div class="flex gap-4">
+                        <div class="flex-1">
+                            <label for="numeroInicial" class="block font-bold mb-3">Número Inicial</label>
+                            <input pInputText type="number" id="numeroInicial" formControlName="numeroInicial" required autofocus fluid placeholder="Ex: 1" />
+                        </div>
+                        <div class="flex-1">
+                            <label for="numeroFinal" class="block font-bold mb-3">Número Final</label>
+                            <input pInputText type="number" id="numeroFinal" formControlName="numeroFinal" required fluid placeholder="Ex: 20" />
+                        </div>
+                    </div>
+                    <div>
+                        <label for="garcomLote" class="block font-bold mb-3">Garçom Padrão (Opcional)</label>
+                        <p-select id="garcomLote" formControlName="garcom" [options]="dropdownItems" optionLabel="nome" placeholder="Selecione um garçom" styleClass="w-full" appendTo="body" />
+                    </div>
+                </div>
+            </form>
+        </ng-template>
+
+        <ng-template #footer>
+            <p-button label="Cancel" icon="pi pi-times" text (click)="hideDialog()" />
+            @if (salvar) {
+            <p-button label="Save" icon="pi pi-check" (click)="saveMesa()" [disabled]="(isLote && formLote.invalid) || (!isLote && form.invalid)" />
+            }
+            @if (!salvar) {
+                <p-button label="Excluir" severity="danger" icon="pi pi-trash" (click)="deleteMesa(mesa)" />
+                <p-button label="Editar" icon="pi pi-check" (click)="updateMesa()" />
+            }
+        </ng-template>
+    </p-dialog>
+    <p-confirmDialog [style]="{ width: '450px' }" />
+</div>
+
+
+
+
+
+
+
+
+
+
+
+

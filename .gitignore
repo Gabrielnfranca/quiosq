@@ -1,0 +1,36 @@
+﻿# IDEs and Editors
+.vscode/
+.idea/
+*.suo
+*.sln
+*.sw?
+.DS_Store
+
+# Backups and historical scripts
+z_backups_zip/
+scripts_historico/
+*.zip
+
+# Java / Spring Boot
+quiosq-back-master/target/
+quiosq-back-master/.mvn/wrapper/maven-wrapper.jar
+quiosq-back-master/*.jar
+quiosq-back-master/*.war
+
+# Node & Angular
+node_modules/
+dist/
+dist-ssr/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+"logs/"
+logs
+*.log
+.angular/
+
+# Other Local
+*.local
+.env

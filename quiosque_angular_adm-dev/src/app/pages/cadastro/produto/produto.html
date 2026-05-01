@@ -1,0 +1,132 @@
+<div class="card">
+    <p-toast></p-toast>
+    <p-toolbar styleClass="mb-4 gap-2">
+        <ng-template pTemplate="left">
+            <p-button pRipple severity="success" label="Novo" icon="pi pi-plus" class="mr-2" (click)="openNew()" />
+        </ng-template>
+    </p-toolbar>
+
+    <p-table #dt [value]="produtos()" [rows]="10" [paginator]="false"
+        [globalFilterFields]="['nome', 'descricao', 'categoria.nome']" [tableStyle]="{ 'min-width': '75rem' }"
+        [rowHover]="true" dataKey="id" currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} entradas"
+        [showCurrentPageReport]="true">
+        <ng-template pTemplate="header">
+            <tr>
+                <th style="width:10%">Imagem</th>
+                <th pSortableColumn="nome" style="min-width:14rem">
+                    Nome <p-sortIcon field="nome"></p-sortIcon>
+                </th>
+                <th pSortableColumn="descricao" style="min-width:14rem">
+                    Descrição <p-sortIcon field="descricao"></p-sortIcon>
+                </th>
+                <th pSortableColumn="preco" style="min-width:10rem">
+                    Preço <p-sortIcon field="preco"></p-sortIcon>
+                </th>
+                <th pSortableColumn="categoriaDto.descricao" style="min-width:10rem">
+                    Categoria <p-sortIcon field="categoriaDto.descricao"></p-sortIcon>
+                </th>
+                <th style="min-width:10rem">Ações</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-produto>
+            <tr>
+                <td>
+                    @if (produto.imagem) {
+                    <img [src]="'data:image/png;base64,' + produto.imagem"
+                        [alt]="produto.nome" width="50" class="shadow-4" />
+                    }
+                    @if (!produto.imagem) {
+                    <img src="assets/img/800por450.png" [alt]="produto.nome" width="50" class="shadow-4" />
+                    }
+                </td>
+                <td>{{ produto.nome }}</td>
+                <td>{{ produto.descricao }}</td>
+                <td>{{ produto.preco | currency:'BRL' }}</td>
+                <td>{{ produto.categoriaDto?.descricao }}</td>
+                <td>
+                    @if (produto.ativo) {
+                    <p-button pRipple icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true"
+                        severity="success" (click)="editProduto(produto)" />
+                    <p-button pRipple icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true"
+                        (click)="deleteProduto(produto)" />
+                    }
+                    
+                    <p-button pRipple [icon]="produto.ativo ? 'pi pi-check' : 'pi pi-times'" severity="success" [rounded]="true" [outlined]="true"
+                        (click)="habilitaDEsabilita(produto)" />
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="summary">
+            <div class="flex align-items-center justify-content-between">
+                No total existem {{ produtos() ? produtos().length : 0 }} produtos.
+            </div>
+        </ng-template>
+    </p-table>
+
+    <p-paginator (onPageChange)="onPageChange($event)" [first]="first" [rows]="rows" [totalRecords]="totalRecords" />
+
+    <p-dialog [(visible)]="produtoDialog" [style]="{ width: '450px' }" header="Detalhes do Produto" [modal]="true"
+        styleClass="p-fluid">
+        <ng-template pTemplate="content">
+            <form [formGroup]="form">
+                <div class="grid">
+                    <div style="padding: 1rem 0">
+                        <label for="imagem" class=" font-bold mb-2">Imagem</label>
+                        <div class="flex align-items-center justify-content-center mb-3" *ngIf="produto.imagem">
+
+                            <img [src]="'data:image/png;base64,' + produto.imagem" [alt]="produto.nome" class="shadow-2"
+                                width="150" style="border-radius: 6px" />
+                        </div>
+                        <p-fileUpload [multiple]="false" mode="basic" chooseLabel="Escolher Imagem"
+                            accept="image/jpeg,image/jpg,image/png" (onSelect)="onUpload($event)" [auto]="true"
+                            styleClass="w-full"></p-fileUpload>
+                    </div>
+
+                    <div style="padding: 1rem 0">
+                        <label for="nome" class=" font-bold mb-2">Nome</label>
+                        <p-iconfield iconPosition="left">
+                            <p-inputicon styleClass="pi pi-box" />
+                            <input type="text" pInputText id="nome" formControlName="nome" placeholder="Nome do Produto"
+                                required autofocus class="w-full" />
+                        </p-iconfield>
+                        <small class="p-error  mt-1" *ngIf="submitted && !form.get('nome')?.value">Nome é
+                            obrigatório.</small>
+                    </div>
+
+                    <div style="padding: 1rem 0">
+                        <label for="descricao" class=" font-bold mb-2">Descrição</label>
+                        <textarea id="descricao" pTextarea formControlName="descricao"
+                            placeholder="Descrição do Produto" required rows="3" class="w-full"></textarea>
+                        <small class="p-error  mt-1" *ngIf="submitted && !form.get('descricao')?.value">Descrição é
+                            obrigatória.</small>
+                    </div>
+
+                    <div class="formgrid grid">
+                        <div class="field" style="padding: 1rem 0">
+                            <label for="preco" class=" font-bold mb-2">Preço</label>
+                            <p-inputNumber id="preco" formControlName="preco" mode="currency" currency="BRL"
+                                locale="pt-BR" placeholder="R$ 0,00" styleClass="w-full" class="w-full" />
+                            <small class="p-error  mt-1" *ngIf="submitted && !form.get('preco')?.value">Preço é
+                                obrigatório.</small>
+                        </div>
+                        <div class="field" style="padding: 1rem 0">
+                            <label for="categoria" class=" font-bold mb-2">Categoria</label>
+                            <p-select formControlName="categoria" [options]="categorias()" optionLabel="descricao"
+                                placeholder="Selecione uma Categoria" appendTo="body" styleClass="w-full"
+                                class="w-full"></p-select>
+                            <small class="p-error  mt-1" *ngIf="submitted && !form.get('categoria')?.value">Categoria é
+                                obrigatória.</small>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </ng-template>
+
+        <ng-template pTemplate="footer">
+            <p-button label="Cancelar" icon="pi pi-times" text (click)="hideDialog()" />
+            <p-button label="Salvar" icon="pi pi-check" text (click)="update ? updateProduto() : saveProduto()" />
+        </ng-template>
+    </p-dialog>
+
+    <p-confirmDialog [style]="{ width: '450px' }" />
+</div>
