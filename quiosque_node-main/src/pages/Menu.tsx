@@ -80,17 +80,6 @@ export default function Menu() {
     }
     prevItemsCount.current = currentCount;
   }, [items]);
-  const [isCartBouncing, setIsCartBouncing] = useState(false);
-  const prevItemsCount = useRef(0);
-
-  useEffect(() => {
-    const currentCount = items.reduce((acc, item) => acc + item.quantity, 0);
-    if (currentCount > prevItemsCount.current) {
-      setIsCartBouncing(true);
-      setTimeout(() => setIsCartBouncing(false), 500);
-    }
-    prevItemsCount.current = currentCount;
-  }, [items]);
   
   
   const { toggleOrders } = useOrdersDrawer();
