@@ -104,7 +104,7 @@ export default function App() {
     <BrowserRouter>
       <Toaster position="top-center" richColors />
       <Routes>
-        <Route path="/garcom" element={<ProtectedRoute><GarcomDashboard /></ProtectedRoute>} />
+        <Route path="/garcom" element={<GarcomDashboard />} />
         <Route path="/q/:quiosqueId/m/:mesaId" element={<TenantResolver />} />
         <Route path="/login" element={<Login />} />
         <Route
