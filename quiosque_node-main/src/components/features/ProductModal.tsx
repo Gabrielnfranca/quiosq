@@ -80,7 +80,7 @@ export function ProductModal({ item, isOpen, onClose }: ProductModalProps) {
         }
     }
     
-    toast.success(`${quantity}x ${item.name} adicionado!`);
+    toast.success(`${quantity}x ${item.name} adicionado à comanda!`, { style: { background: '#10b981', color: 'white', border: 'none' } });
     onClose();
     setTimeout(() => {
         setQuantity(1);
@@ -119,7 +119,7 @@ export function ProductModal({ item, isOpen, onClose }: ProductModalProps) {
               </div>
             </div>
 
-            <div className="mt-2 bg-slate-50 p-6 relative z-10 border-t border-slate-100">
+            <div className="bg-slate-50 p-6 relative z-10 border-t border-slate-100">
               <div className="flex flex-col gap-1 mb-4">
                 <h3 className="font-extrabold text-slate-800 tracking-tight">Deseja adicionar complementos?</h3>
                 <p className="text-xs font-semibold text-slate-500">Aumente para adicionar as opções.</p>

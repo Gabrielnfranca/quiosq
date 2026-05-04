@@ -1,13 +1,16 @@
-﻿import { useState, useRef } from 'react';
-import { Package, UtensilsCrossed, ChefHat, Wine, IceCream, GlassWater, Home, Search, ScrollText } from 'lucide-react';
+﻿import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { X, Package, UtensilsCrossed, ChefHat, Wine, IceCream, GlassWater, Home, Search, ScrollText, ClipboardList } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { CategoryFilter } from '@/components/features/CategoryFilter';
 import { MenuItemCard } from '@/components/features/MenuItemCard';
 import { CartDrawer } from '@/components/features/CartDrawer';
+import { OrdersDrawer } from '@/components/features/OrdersDrawer';
 import { FloatingCartBanner } from '@/components/features/FloatingCartBanner';
 import { MENU_ITEMS, CATEGORIES } from '@/constants/menu';
 import { useTenant } from '@/stores/tenant';
 import { useCart } from '@/stores/cart';
+import { useOrdersDrawer } from '@/stores/ordersDrawer';
 
 // Componente utilitário para permitir Arrasto com o MOUSE no PC
 function DraggableCarousel({ children }: { children: React.ReactNode }) {
@@ -64,15 +67,42 @@ const CATEGORY_STYLES: Record<string, { image: string, icon: any }> = {
 export default function Menu() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
   const { toggleCart, items } = useCart();
-  const { garcomNome, quiosqueId, mesaId } = useTenant();
+  const [isCartBouncing, setIsCartBouncing] = useState(false);
+  const prevItemsCount = useRef(0);
+
+  useEffect(() => {
+    const currentCount = items.reduce((acc, item) => acc + item.quantity, 0);
+    if (currentCount > prevItemsCount.current) {
+      setIsCartBouncing(true);
+      setTimeout(() => setIsCartBouncing(false), 500);
+    }
+    prevItemsCount.current = currentCount;
+  }, [items]);
+  const [isCartBouncing, setIsCartBouncing] = useState(false);
+  const prevItemsCount = useRef(0);
+
+  useEffect(() => {
+    const currentCount = items.reduce((acc, item) => acc + item.quantity, 0);
+    if (currentCount > prevItemsCount.current) {
+      setIsCartBouncing(true);
+      setTimeout(() => setIsCartBouncing(false), 500);
+    }
+    prevItemsCount.current = currentCount;
+  }, [items]);
+  
+  
+  const { toggleOrders } = useOrdersDrawer();
+          const { garcomNome, quiosqueId, mesaId } = useTenant();
+  const navigate = useNavigate();
 
   const formatQuiosqueName = (id: string | null) => {
     if (!id) return '';
     return id.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   };
 
-  const filteredItems = selectedCategory
+  const filteredItems = (selectedCategory && selectedCategory !== 'Todos')
     ? MENU_ITEMS.filter((item) => item.category === selectedCategory && item.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : MENU_ITEMS.filter((item) => item.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -80,10 +110,11 @@ export default function Menu() {
     <div className="min-h-screen bg-slate-50">
       <Header />
       
-      <main className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
+      <main className="container mx-auto px-3 sm:px-4 pt-6 pb-28 sm:pt-8 sm:pb-32">
         
         {/* BARRA DE PESQUISA (VAI MOSTRAR RESULTADOS NO LUGAR DA HOME OU DA CATEGORIA SE PREENCHIDA) */}
-        <div className="mb-6 relative">
+        {isSearchVisible && (
+          <div className="mb-6 relative animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <Search className="h-5 w-5 text-slate-400" />
           </div>
@@ -107,7 +138,9 @@ export default function Menu() {
           )}
         </div>
 
-        {/* BANNER DE BOAS-VINDAS CUSTOMIZADO (Esconde se estiver pesquisando) */}
+                  )}
+
+          {/* BANNER DE BOAS-VINDAS CUSTOMIZADO (Esconde se estiver pesquisando) */}
         {!searchQuery && (
           <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm border border-slate-100 flex items-center justify-between overflow-hidden relative">
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#FFCC00] rounded-full translate-x-12 -translate-y-12 opacity-20"></div>
@@ -160,7 +193,7 @@ export default function Menu() {
               </div>
             )}
           </div>
-        ) : !selectedCategory ? (
+        ) : (
           <div className="space-y-10 pb-40 mt-2">
             
             {/* GRID DE CATEGORIAS FOTOGRÁFICO - ESTILO RESTAURANTE PREMIUM */}
@@ -196,7 +229,7 @@ export default function Menu() {
             <section>
               <div className="flex items-center justify-between px-1 mb-4 pt-2">
                 <h2 className="text-xl font-black tracking-tight text-slate-800 uppercase flex items-center gap-2" style={{ fontFamily: "var(--font-titulo)" }}>
-                  <span className="text-[#FFCC00] mr-1">|</span> Mais Vendidos
+                  <span className="text-[#FFCC00] mr-1"></span><span className="w-1.5 h-[22px] bg-[#FFCC00] rounded-full mr-1.5 inline-block shrink-0"></span> Mais Vendidos
                 </h2>
               </div>
               <DraggableCarousel>
@@ -212,7 +245,7 @@ export default function Menu() {
             <section>
               <div className="flex items-center justify-between px-1 mb-4">
                 <h2 className="text-xl font-black tracking-tight text-slate-800 uppercase flex items-center gap-2" style={{ fontFamily: "var(--font-titulo)" }}>
-                  <span className="text-[#FFCC00] mr-1">|</span> Combos & Baldes
+                  <span className="w-1.5 h-[22px] bg-[#FFCC00] rounded-full mr-1.5 inline-block shrink-0"></span> Combos & Baldes
                 </h2>
               </div>
               <DraggableCarousel>
@@ -228,7 +261,7 @@ export default function Menu() {
             <section>
               <div className="flex items-center justify-between px-1 mb-4">
                 <h2 className="text-xl font-black tracking-tight text-slate-800 uppercase flex items-center gap-2" style={{ fontFamily: "var(--font-titulo)" }}>
-                  <span className="text-[#FFCC00] mr-1">|</span> Para Compartilhar
+                  <span className="w-1.5 h-[22px] bg-[#FFCC00] rounded-full mr-1.5 inline-block shrink-0"></span> Para Compartilhar
                 </h2>
               </div>
               <DraggableCarousel>
@@ -276,7 +309,7 @@ export default function Menu() {
               <section>
                 <div className="flex items-center justify-between px-1 mb-4 border-b-2 border-slate-100 pb-2">
                   <h2 className="text-xl font-black tracking-tight text-slate-800 uppercase flex items-center gap-2" style={{ fontFamily: "var(--font-titulo)" }}>
-                    <span className="text-[#FFCC00] mr-1">|</span> Bebidas Sem Álcool
+                    <span className="w-1.5 h-[22px] bg-[#FFCC00] rounded-full mr-1.5 inline-block shrink-0"></span> Bebidas Sem Álcool
                   </h2>
                 </div>
                 <DraggableCarousel>
@@ -289,60 +322,88 @@ export default function Menu() {
               </section>
 
           </div>
-        ) : (
-          /* QUANDO UMA CATEGORIA É SELECIONADA */
-          <div className="pb-40 mt-2">
-            {/* CATEGORIAS FIXAS (STICKY) NA ROLAGEM APENAS QUANDO DENTRO DA CATEGORIA */}
-            <div className="sticky top-16 z-40 bg-slate-50 pt-2 pb-3 mb-6 -mx-3 px-3 sm:-mx-4 sm:px-4 shadow-sm border-b border-slate-200/50 transition-all">
-              <CategoryFilter
-                selectedCategory={selectedCategory}
-                onSelectCategory={setSelectedCategory}
-              />
+        
+        )}
+      
+      {/* CATEGORY DRAWER */}
+      {selectedCategory && (
+        <>
+          <div
+            className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm transition-opacity"
+            onClick={() => setSelectedCategory(null)}
+          />
+          <div className="fixed right-0 top-0 z-[70] h-[100dvh] w-full max-w-md animate-slide-in bg-slate-50 shadow-2xl sm:w-[400px] flex flex-col">
+            <div className="relative z-40 flex items-center justify-between px-5 py-4 bg-white border-b border-slate-100 shrink-0">
+              <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight flex items-center gap-1" style={{ fontFamily: 'var(--font-titulo)' }}><span className="w-1.5 h-[22px] bg-[#FFCC00] rounded-full mr-1.5 inline-block shrink-0"></span> <span>{selectedCategory === 'Todos' ? 'Todos os Produtos' : selectedCategory}</span></h2>
+              <button 
+                onClick={() => setSelectedCategory(null)} 
+                className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors active:scale-95"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            
-            <div className="flex items-center justify-between px-1 mb-4">
-              <h2 className="text-2xl font-black tracking-tight text-slate-800 uppercase" style={{ fontFamily: "var(--font-titulo)" }}>
-                {selectedCategory}
-              </h2>
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {filteredItems.map((item) => (
-                <MenuItemCard key={item.id} item={item} variant="button" />
-              ))}
+
+            <div className="flex-1 overflow-y-auto hide-scrollbar relative flex flex-col">
+              <div className="sticky -top-[1px] z-30 bg-slate-50 pt-4 pb-2 px-4 mb-4 -mx-1">
+                <CategoryFilter
+                  selectedCategory={selectedCategory}
+                  onSelectCategory={setSelectedCategory}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-2 px-4 pb-6">
+                {filteredItems.map((item) => (
+                  <MenuItemCard key={item.id} item={item} variant="button" />
+                ))}
+              </div>
             </div>
           </div>
-        )}
+        </>
+      )}
+
       </main>
 
       <FloatingCartBanner />
       <CartDrawer />
+      <OrdersDrawer />
 
       {/* BOTTOM NAVIGATION BAR (FIXED) */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-50 px-6 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)] h-[72px]">
         <div className="flex justify-between items-center max-w-sm mx-auto h-full pt-1 pb-2">
           
-          <button className="flex flex-col items-center justify-center text-slate-800 w-16 h-full relative">
+          <button 
+            onClick={() => setIsSearchVisible(false)}
+            className={`flex flex-col items-center justify-center transition-colors w-16 h-full relative ${!isSearchVisible ? 'text-slate-800' : 'text-slate-500 hover:text-slate-800'}`}
+          >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 mb-1">
               <path d="M12 3L4 9V21H9V14H15V21H20V9L12 3Z" />
             </svg>
-            <span className="text-[11px] font-extrabold tracking-tight">Início</span>
-            <div className="absolute bottom-0 w-8 h-[3px] bg-[#FFCC00] rounded-full" />
+            <span className={`text-[11px] tracking-tight ${!isSearchVisible ? 'font-extrabold' : 'font-bold'}`}>Início</span>
+            {!isSearchVisible && (
+              <div className="absolute bottom-0 w-8 h-[3px] bg-[#FFCC00] rounded-full" />
+            )}
           </button>
           
           <button 
-            onClick={() => document.getElementById('search-input-home')?.focus()}
-            className="flex flex-col items-center justify-center text-slate-500 hover:text-slate-800 transition-colors w-16 h-full"
+            onClick={() => {
+              setIsSearchVisible((prev) => !prev);
+              setTimeout(() => document.getElementById('search-input-home')?.focus(), 100);
+            }}
+            className={`flex flex-col items-center justify-center transition-colors w-16 h-full relative ${isSearchVisible ? 'text-slate-800' : 'text-slate-500 hover:text-slate-800'}`}
           >
             <Search className="w-6 h-6 mb-1 stroke-[2]" />
-            <span className="text-[11px] font-bold tracking-tight">Busca</span>
+            <span className={`text-[11px] tracking-tight ${isSearchVisible ? 'font-extrabold' : 'font-bold'}`}>Busca</span>
+            {isSearchVisible && (
+              <div className="absolute bottom-0 w-8 h-[3px] bg-[#FFCC00] rounded-full" />
+            )}
           </button>
           
           <button 
             onClick={() => toggleCart()}
             className="flex flex-col items-center justify-center text-slate-500 hover:text-slate-800 transition-colors w-16 h-full relative"
           >
-            <div className="relative mb-1">
-              <ScrollText className="w-6 h-6 stroke-[2]" />
+            <div className={`relative mb-1 transition-transform duration-300 ${isCartBouncing ? 'scale-125 -translate-y-1' : ''}`}>
+                <ScrollText className="w-6 h-6 stroke-[2]" />
               {items.length > 0 && (
                 <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] font-bold px-[5px] py-[1px] rounded-full">
                   {items.length}
@@ -350,6 +411,14 @@ export default function Menu() {
               )}
             </div>
             <span className="text-[11px] font-bold tracking-tight">Comanda</span>
+          </button>
+          
+          <button 
+            onClick={() => toggleOrders()}
+            className="flex flex-col items-center justify-center text-slate-500 hover:text-slate-800 transition-colors w-16 h-full relative"
+          >
+            <ClipboardList className="w-6 h-6 mb-1 stroke-[2]" />
+            <span className="text-[11px] font-bold tracking-tight">Pedidos</span>
           </button>
 
         </div>

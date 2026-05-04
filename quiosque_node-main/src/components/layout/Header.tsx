@@ -66,7 +66,7 @@ export function Header() {
           </div>
           <div className="flex flex-col justify-center">
             <h1 className="text-xl font-black tracking-tight text-slate-800 uppercase" style={{ fontFamily: 'var(--font-titulo)' }}>QuiosQ</h1>
-            {quiosqueId && <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wide mt-0.5">{formatQuiosqueName(quiosqueId)}</span>}
+            
           </div>
           
           <div className={`transition-all duration-300 ease-in-out ${isScrolled ? 'opacity-100 scale-100' : 'opacity-0 scale-95 w-0 overflow-hidden'}`}>

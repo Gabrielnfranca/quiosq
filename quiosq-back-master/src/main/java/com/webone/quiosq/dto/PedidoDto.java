@@ -19,4 +19,7 @@ public class PedidoDto {
     private Double total;
     private String cliente;
     private String observacoes;
+    private String qrCodePix;
+    private String pixCopiaECola;
+    private Long idPagamentoMercadoPago;
 }

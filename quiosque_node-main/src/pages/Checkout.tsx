@@ -131,11 +131,11 @@ export default function Checkout() {
           <button onClick={() => navigate('/')} className="absolute left-4 p-2 -ml-2 text-gray-900 active:bg-gray-100 rounded-full transition-colors">
             <ArrowLeft className="h-6 w-6" />
           </button>
-          <h1 className="font-bold text-gray-900 text-[13px] tracking-widest uppercase">Sacola</h1>
+          <h1 className="font-bold text-gray-900 text-[13px] tracking-widest uppercase">Comanda</h1>
         </header>
         <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
           <Receipt className="h-16 w-16 text-gray-300 mb-4" />
-          <h2 className="mb-2 text-xl font-bold text-gray-900">Sua sacola está vazia</h2>
+          <h2 className="mb-2 text-xl font-bold text-gray-900">Sua comanda está vazia</h2>
           <Button onClick={() => navigate('/')} className="mt-8 bg-[#FFCC00] hover:bg-[#F2C200] text-black font-semibold rounded-lg px-8 py-6 w-full max-w-xs text-base transition-colors">
             Adicionar produtos
           </Button>
@@ -152,12 +152,12 @@ export default function Checkout() {
         <button type="button" onClick={() => navigate('/')} className="absolute left-4 p-2 -ml-2 text-gray-900 rounded-full transition-colors">
           <ArrowLeft className="h-6 w-6" />
         </button>
-        <h1 className="font-bold text-gray-900 text-[13px] tracking-widest uppercase">Sacola</h1>
+        <h1 className="font-bold text-gray-900 text-[13px] tracking-widest uppercase">Comanda</h1>
       </header>
 
       <form id="checkout-form" onSubmit={handleSubmit} className="flex flex-col max-w-2xl mx-auto">
         
-        {/* Lista de Produtos (Estilo ZÃ©) */}
+        {/* Lista de Produtos (Estilo Zé) */}
         <div className="px-4 py-2">
           {items.map((item) => (
             <div key={item.id} className="py-5 border-b border-gray-100 last:border-0 flex gap-4">

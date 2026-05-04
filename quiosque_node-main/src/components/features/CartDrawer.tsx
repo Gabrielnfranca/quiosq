@@ -1,4 +1,4 @@
-import { X, Minus, Plus, ShoppingBag, Trash2, ArrowRight } from 'lucide-react';
+import { X, Minus, Plus, ScrollText, Trash2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/stores/cart';
 import { useNavigate } from 'react-router-dom';
@@ -22,13 +22,13 @@ export function CartDrawer() {
       />
       <div className="fixed right-0 top-0 z-[70] h-[100dvh] w-full max-w-md animate-slide-in bg-slate-50 shadow-2xl sm:w-[400px] flex flex-col">
         
-        {/* Cabeçalho da Sacola */}
+        {/* Cabeçalho da Comanda */}
         <div className="flex items-center justify-between px-5 py-4 bg-white border-b border-slate-100 shadow-sm shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#FFCC00] rounded-full flex items-center justify-center">
-              <ShoppingBag className="w-5 h-5 text-slate-900" strokeWidth={2.5} />
+              <ScrollText className="w-5 h-5 text-slate-900" strokeWidth={2.5} />
             </div>
-            <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight" style={{ fontFamily: 'var(--font-titulo)' }}>Sua Sacola</h2>
+            <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight" style={{ fontFamily: 'var(--font-titulo)' }}>Sua Comanda</h2>
           </div>
           <button 
             onClick={toggleCart} 
@@ -43,9 +43,9 @@ export function CartDrawer() {
           {items.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center text-center">
               <div className="h-24 w-24 bg-slate-200/50 rounded-full flex items-center justify-center mb-5">
-                <ShoppingBag className="h-10 w-10 text-slate-400" strokeWidth={2} />
+                <ScrollText className="h-10 w-10 text-slate-400" strokeWidth={2} />
               </div>
-              <p className="text-2xl font-black text-slate-800 uppercase tracking-tight" style={{ fontFamily: 'var(--font-titulo)' }}>Sacola Vazia</p>
+              <p className="text-2xl font-black text-slate-800 uppercase tracking-tight" style={{ fontFamily: 'var(--font-titulo)' }}>Comanda Vazia</p>
               <p className="text-base font-medium text-slate-500 mt-2 max-w-[250px]">
                 Que tal adicionar algumas delícias para matar a fome?
               </p>

@@ -30,6 +30,7 @@ public class SecurityConfiguration {
         "api/v1/auth",
         "/api/v1/admin/mesa/debug",
         "/api/v1/admin/mesa/*/debug",
+        "/api/v1/cardapio/**",
         "/swagger-ui/**", "/swagger-ui/index.html","/actuator/**",
         "/v3/api-docs/**",
         "/error"

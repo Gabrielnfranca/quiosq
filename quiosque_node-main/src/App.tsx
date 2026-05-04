@@ -7,6 +7,7 @@ import { useAuth } from './stores/auth';
 import { useTenant } from './stores/tenant';
 import Login from './pages/Login';
 import Menu from './pages/Menu';
+import GarcomDashboard from './pages/GarcomDashboard';
 import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
 
@@ -103,6 +104,7 @@ export default function App() {
     <BrowserRouter>
       <Toaster position="top-center" richColors />
       <Routes>
+        <Route path="/garcom" element={<ProtectedRoute><GarcomDashboard /></ProtectedRoute>} />
         <Route path="/q/:quiosqueId/m/:mesaId" element={<TenantResolver />} />
         <Route path="/login" element={<Login />} />
         <Route

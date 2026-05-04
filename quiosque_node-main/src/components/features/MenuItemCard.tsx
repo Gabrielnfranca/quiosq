@@ -16,7 +16,7 @@ export function MenuItemCard({ item, variant = 'icon' }: MenuItemCardProps) {
   return (
     <>
       <Card 
-        className={"transition-all hover:shadow-md animate-fade-in flex flex-col h-full border-slate-200 relative group bg-white rounded-2xl ${variant === 'icon' ? 'overflow-visible' : 'overflow-hidden'}"}
+        className={`transition-all hover:shadow-md animate-fade-in flex flex-col h-full border-slate-200 relative group bg-white rounded-2xl ${variant === 'icon' ? 'overflow-visible' : 'overflow-hidden'}`}
       >
         <div className="relative aspect-square overflow-hidden bg-slate-50 cursor-pointer rounded-t-2xl" onClick={() => setIsModalOpen(true)}>
           <img
@@ -25,7 +25,7 @@ export function MenuItemCard({ item, variant = 'icon' }: MenuItemCardProps) {
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 pointer-events-none"
           />
         </div>
-        <div className={"flex flex-col flex-1 px-3 py-4 cursor-pointer select-none ${variant === 'icon' ? 'pb-4' : 'pb-2'}"} onClick={() => setIsModalOpen(true)}>
+        <div className={`flex flex-col flex-1 px-3 py-4 cursor-pointer select-none ${variant === 'icon' ? 'pb-4' : 'pb-2'}`} onClick={() => setIsModalOpen(true)}>
           <h3 className="line-clamp-2 text-sm sm:text-base font-bold text-slate-800 leading-snug flex-1 mb-1">
             {item.name}
           </h3>

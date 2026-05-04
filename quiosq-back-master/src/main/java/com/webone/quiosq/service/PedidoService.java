@@ -1,10 +1,21 @@
 package com.webone.quiosq.service;
 
+import com.mercadopago.resources.payment.Payment;
+import com.mercadopago.resources.payment.PaymentPointOfInteraction;
+import com.webone.quiosq.dto.PedidoCreateDto;
 import com.webone.quiosq.dto.PedidoDto;
+import com.webone.quiosq.dto.PedidoItemCreateDto;
 import com.webone.quiosq.dto.PedidoItemDto;
+import com.webone.quiosq.entity.Mesa;
 import com.webone.quiosq.entity.Pedido;
 import com.webone.quiosq.entity.PedidoItem;
+import com.webone.quiosq.entity.Quiosque;
+import com.webone.quiosq.repository.MesaRepository;
 import com.webone.quiosq.repository.PedidoRepository;
+import com.webone.quiosq.repository.QuiosqueRepository;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -14,12 +25,91 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
 public class PedidoService {
 
     private final PedidoRepository pedidoRepository;
+    private final MesaRepository mesaRepository;
+    private final QuiosqueRepository quiosqueRepository;
+    private final PagamentoService pagamentoService;
+
+    @Transactional
+    public PedidoDto createPedido(PedidoCreateDto dto) {
+        Quiosque quiosque = quiosqueRepository.findById(dto.getQuiosqueId())
+                .orElseThrow(() -> new RuntimeException("Quiosque não encontrado"));
+                
+        Mesa mesa = null;
+        if (dto.getMesaId() != null) {
+            mesa = mesaRepository.findById(dto.getMesaId()).orElse(null);
+        }
+        
+        Pedido pedido = Pedido.builder()
+                .quiosque(quiosque)
+                .mesa(mesa)
+                .cliente(dto.getCliente())
+                .observacoes(dto.getObservacoes() + (dto.getPaymentMethod() != null ? " - Pagamento: " + dto.getPaymentMethod() : ""))
+                .dataInit(LocalDateTime.now())
+                .status("PENDENTE")
+                // Gerar codigo aleatorio ou sequencial basico
+                .codigo(UUID.randomUUID().toString().substring(0, 6).toUpperCase())
+                .nomePedido(dto.getCliente() != null ? dto.getCliente() : "Cliente")
+                .build();
+                
+        List<PedidoItem> itens = new ArrayList<>();
+        double total = 0.0;
+        
+        if (dto.getItens() != null) {
+            for (PedidoItemCreateDto itemDto : dto.getItens()) {
+                double itemTotal = itemDto.getPrice() * itemDto.getQuantity();
+                total += itemTotal;
+                
+                PedidoItem item = PedidoItem.builder()
+                        .pedido(pedido)
+                        .descricao(itemDto.getName())
+                        .quantidade(itemDto.getQuantity())
+                        .preco(itemDto.getPrice())
+                        .total(itemTotal)
+                        .categoria("GERAL")
+                        .build();
+                itens.add(item);
+            }
+        }
+        
+        // Adiciona taxa ou formata o total
+        pedido.setTotal(total);
+        pedido.setItens(itens);
+        
+        pedido = pedidoRepository.save(pedido);
+
+        PedidoDto responseDto = toDto(pedido);
+
+        // Se for PIX, cria o pagamento no mercado pago e retorna
+        if ("PIX".equalsIgnoreCase(dto.getPaymentMethod())) {
+            try {
+                Payment payment = pagamentoService.criarPagamentoPix(
+                    total, 
+                    null, // Email (Pode depois pegar do cliente)
+                    "Pedido " + pedido.getCodigo(), 
+                    pedido.getId()
+                );
+                
+                if (payment != null && payment.getPointOfInteraction() != null) {
+                    com.mercadopago.resources.payment.PaymentTransactionData txData = payment.getPointOfInteraction().getTransactionData();
+                    responseDto.setQrCodePix(txData.getQrCodeBase64());
+                    responseDto.setPixCopiaECola(txData.getQrCode());
+                    responseDto.setIdPagamentoMercadoPago(payment.getId());
+                }
+            } catch (Exception e) {
+                // Em cenario real tratar log. Nao impedir pedido se pix falhar, ou ate jogar erro
+                e.printStackTrace();
+            }
+        }
+        
+        return responseDto;
+    }
 
     public Page<PedidoDto> findAllPageable(Map<String, String> params, UUID quiosqueId) {
         int page = params.containsKey("page") ? Integer.parseInt(params.get("page")) : 0;
