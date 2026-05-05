@@ -1,4 +1,4 @@
-import { Menu, ShoppingCart, UtensilsCrossed, User, LogOut, ClipboardList } from 'lucide-react';
+import { Menu, ShoppingCart, Palmtree, User, LogOut, ClipboardList, BellRing } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -61,12 +61,13 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 shadow-md">
-             <UtensilsCrossed className="h-5 w-5 text-[#FFCC00]" />
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-[#FFCC00] shadow-sm border border-yellow-400">
+             <Palmtree className="h-6 w-6 text-slate-900" />
           </div>
           <div className="flex flex-col justify-center">
-            <h1 className="text-xl font-black tracking-tight text-slate-800 uppercase" style={{ fontFamily: 'var(--font-titulo)' }}>QuiosQ</h1>
-            
+            <h1 className="font-black text-2xl tracking-tighter text-slate-900 leading-none flex items-baseline gap-0.5">
+              QuiosQ <span className="text-[#FFCC00] text-3xl leading-none">.</span>
+            </h1>
           </div>
           
           <div className={`transition-all duration-300 ease-in-out ${isScrolled ? 'opacity-100 scale-100' : 'opacity-0 scale-95 w-0 overflow-hidden'}`}>
@@ -113,6 +114,22 @@ export function Header() {
                       <ClipboardList className="h-5 w-5 text-slate-700" strokeWidth={2} />
                     </div>
                     <span className="font-bold text-slate-700">Meus Pedidos</span>
+                  </button>
+                  
+                  <div className="h-[1px] w-full bg-slate-100" />
+
+                  <button
+                    className="w-full flex items-center gap-4 p-4 bg-yellow-50/30 hover:bg-yellow-50 active:bg-yellow-100 transition-colors text-left group relative"
+                    onClick={() => alert("Garçom chamado com sucesso! Ele já está a caminho.")}
+                  >
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#FFCC00] rounded-r-md"></div>
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[#FFCC00] shadow-sm shrink-0">
+                      <BellRing className="h-5 w-5 text-slate-900" strokeWidth={2.5} />
+                    </div>
+                    <div className="flex flex-col pt-0.5">
+                      <span className="font-black text-slate-900 leading-none">Chamar Garçom</span>
+                      <span className="text-[11px] text-slate-500 font-bold mt-1">Precisa de ajuda na mesa?</span>
+                    </div>
                   </button>
                   
                   <div className="h-[1px] w-full bg-slate-100" />

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useParams, useSearchParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { QrCode } from 'lucide-react';
 import { supabase } from './lib/supabase';
@@ -8,6 +8,7 @@ import { useTenant } from './stores/tenant';
 import Login from './pages/Login';
 import Menu from './pages/Menu';
 import GarcomDashboard from './pages/GarcomDashboard';
+import CozinhaDashboard from './pages/CozinhaDashboard';
 import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
 
@@ -16,14 +17,21 @@ function TenantResolver() {
   const [searchParams] = useSearchParams();
   const garcomNome = searchParams.get('garcom');
   const { setTenant } = useTenant();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (quiosqueId && mesaId) {
       setTenant(quiosqueId, mesaId, garcomNome);
+      // Garante que o estado seja salvo no banco local ANTES de despachar para o Menu
+      navigate('/', { replace: true });
     }
-  }, [quiosqueId, mesaId, garcomNome, setTenant]);
+  }, [quiosqueId, mesaId, garcomNome, setTenant, navigate]);
 
-  return <Navigate to="/" replace />;
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-cyan-500 border-t-transparent" />
+    </div>
+  );
 }
 import { User } from '@supabase/supabase-js';
 import { AuthUser } from './types';
@@ -105,6 +113,7 @@ export default function App() {
       <Toaster position="top-center" richColors />
       <Routes>
         <Route path="/garcom" element={<GarcomDashboard />} />
+        <Route path="/cozinha" element={<CozinhaDashboard />} />
         <Route path="/q/:quiosqueId/m/:mesaId" element={<TenantResolver />} />
         <Route path="/login" element={<Login />} />
         <Route

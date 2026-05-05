@@ -1,6 +1,6 @@
 ﻿import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Package, UtensilsCrossed, ChefHat, Wine, IceCream, GlassWater, Home, Search, ScrollText, ClipboardList } from 'lucide-react';
+import { X, Package, UtensilsCrossed, ChefHat, Wine, IceCream, GlassWater, Home, Search, ScrollText, ClipboardList, BellRing } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { CategoryFilter } from '@/components/features/CategoryFilter';
 import { MenuItemCard } from '@/components/features/MenuItemCard';
@@ -68,7 +68,7 @@ export default function Menu() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-  const { toggleCart, items } = useCart();
+  const { toggleCart, items, isOpen: isCartOpen } = useCart();
   const [isCartBouncing, setIsCartBouncing] = useState(false);
   const prevItemsCount = useRef(0);
 
@@ -82,9 +82,30 @@ export default function Menu() {
   }, [items]);
   
   
-  const { toggleOrders } = useOrdersDrawer();
+  const { toggleOrders, isOpen: isOrdersOpen } = useOrdersDrawer();
           const { garcomNome, quiosqueId, mesaId } = useTenant();
   const navigate = useNavigate();
+
+  // Animação periódica flutuante
+  const [showWaiterTooltip, setShowWaiterTooltip] = useState(false);
+  const [isWaiterBouncing, setIsWaiterBouncing] = useState(false);
+
+  useEffect(() => {
+    // Alerta/balãozinho a cada 15 segundos
+    const tooltipInterval = setInterval(() => {
+      setShowWaiterTooltip(true);
+      setIsWaiterBouncing(true);
+      
+      // Esconde o balãozinho depois de 6 segundos
+      setTimeout(() => {
+        setShowWaiterTooltip(false);
+        setIsWaiterBouncing(false);
+      }, 6000);
+      
+    }, 15000); // 15 segundos
+
+    return () => clearInterval(tooltipInterval);
+  }, []);
 
   const formatQuiosqueName = (id: string | null) => {
     if (!id) return '';
@@ -99,7 +120,7 @@ export default function Menu() {
     <div className="min-h-screen bg-slate-50">
       <Header />
       
-      <main className="container mx-auto px-3 sm:px-4 pt-6 pb-28 sm:pt-8 sm:pb-32">
+      <main className="container mx-auto px-3 sm:px-4 pt-6 pb-6 sm:pt-8 sm:pb-8">
         
         {/* BARRA DE PESQUISA (VAI MOSTRAR RESULTADOS NO LUGAR DA HOME OU DA CATEGORIA SE PREENCHIDA) */}
         {isSearchVisible && (
@@ -141,19 +162,21 @@ export default function Menu() {
                 {quiosqueId ? formatQuiosqueName(quiosqueId) : 'Nosso Restaurante'}
               </h1>
               
-              <div className="flex items-center gap-2 mt-2">
+              <div className="flex items-center gap-2 mt-3 flex-wrap">
                 {mesaId && (
-                  <div className="inline-flex items-center justify-center text-sm font-black text-slate-900 bg-[#FFCC00] px-3 py-1 rounded-lg">
+                  <div className="inline-flex items-center justify-center text-sm font-black text-slate-900 bg-[#FFCC00] px-4 py-1.5 rounded-xl shadow-sm">
                     📍 Mesa {mesaId}
                   </div>
                 )}
                 
-                {garcomNome && (
-                  <div className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1 text-xs text-[#FFCC00] font-bold">
-                    <span>Atendente:</span>
-                    <strong className="uppercase text-white">{garcomNome}</strong>
-                  </div>
-                )}
+                {/* Mostra sempre o Garçom responsável. Se não veio pela URL (Painel do Garçom), o sistema no futuro puxará do banco de dados a praça do cliente. Aqui usamos um nome de demonstração. */}
+                <div className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 border border-slate-800 px-4 py-1.5 text-sm text-[#FFCC00] font-extrabold shadow-sm">
+                  <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                  </span>
+                  GARÇOM: <span className="text-white uppercase">{garcomNome || 'Gabriel'}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -161,7 +184,7 @@ export default function Menu() {
 
         {/* ESTRUTURA DA HOME (ESTÁ PESQUISANDO OU SEM CATEGORIA) */}
         {searchQuery ? (
-          <div className="pb-40">
+          <div className="pb-36">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">
                 Resultados para "{searchQuery}"
@@ -183,7 +206,7 @@ export default function Menu() {
             )}
           </div>
         ) : (
-          <div className="space-y-10 pb-40 mt-2">
+          <div className="space-y-10 pb-36 mt-2">
             
             {/* GRID DE CATEGORIAS FOTOGRÁFICO - ESTILO RESTAURANTE PREMIUM */}
             <section>
@@ -321,7 +344,7 @@ export default function Menu() {
             className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm transition-opacity"
             onClick={() => setSelectedCategory(null)}
           />
-          <div className="fixed right-0 top-0 z-[70] h-[100dvh] w-full max-w-md animate-slide-in bg-slate-50 shadow-2xl sm:w-[400px] flex flex-col">
+          <div className="fixed right-0 top-0 z-[70] h-[100dvh] w-full max-w-md animate-slide-in bg-slate-50 shadow-2xl sm:w-[400px] flex flex-col pb-[72px]">
             <div className="relative z-40 flex items-center justify-between px-5 py-4 bg-white border-b border-slate-100 shrink-0">
               <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight flex items-center gap-1" style={{ fontFamily: 'var(--font-titulo)' }}><span className="w-1.5 h-[22px] bg-[#FFCC00] rounded-full mr-1.5 inline-block shrink-0"></span> <span>{selectedCategory === 'Todos' ? 'Todos os Produtos' : selectedCategory}</span></h2>
               <button 
@@ -340,7 +363,7 @@ export default function Menu() {
                 />
               </div>
               
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-2 px-4 pb-6">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-2 px-4 pb-28">
                 {filteredItems.map((item) => (
                   <MenuItemCard key={item.id} item={item} variant="button" />
                 ))}
@@ -352,12 +375,37 @@ export default function Menu() {
 
       </main>
 
+      {/* BOTÃO FLUTUANTE DE GARÇOM GLOBO (Pequeno e não intrusivo) */}
+      <div className={`fixed right-4 z-[85] flex flex-col items-end pointer-events-none transition-all duration-300 ${items.length > 0 ? 'bottom-[150px]' : 'bottom-[88px]'} ${isCartOpen || isOrdersOpen ? 'opacity-0 scale-75 pointer-events-none' : 'opacity-100 scale-100'}`}>
+        
+        {/* Balão de Texto (Tooltip) */}
+        <div className={`transition-all duration-700 origin-bottom-right mb-2 pointer-events-auto cursor-pointer ${showWaiterTooltip ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-90 translate-y-2'}`}
+             onClick={() => alert("Garçom chamado! Ele já está a caminho.")}>
+          <div className="bg-slate-900 border border-slate-800 text-white text-[11px] font-bold px-3 py-2 rounded-2xl relative shadow-lg">
+            <p className="flex items-center gap-1.5 whitespace-nowrap leading-none">
+              <span className="text-[#FFCC00]">Dúvidas?</span> Chame o garçom
+            </p>
+            {/* Triângulo apontando para baixo e para direita */}
+            <div className="absolute -bottom-1 right-5 w-3 h-3 bg-slate-900 border-b border-r border-slate-800 rotate-45"></div>
+          </div>
+        </div>
+
+        {/* Botão Redondo */}
+        <button 
+          onClick={() => alert("Garçom chamado com sucesso! Ele já está a caminho da sua mesa.")}
+          className={`pointer-events-auto bg-[#FFCC00] hover:bg-[#F2C200] text-slate-900 shadow-md w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-95 ${isWaiterBouncing ? 'animate-bounce' : ''}`}
+          style={{boxShadow: '0 4px 20px -2px rgba(255, 204, 0, 0.4)'}}
+        >
+          <BellRing className={`w-5 h-5 ${isWaiterBouncing ? 'animate-pulse' : ''}`} strokeWidth={2.5} />
+        </button>
+      </div>
+
       <FloatingCartBanner />
       <CartDrawer />
       <OrdersDrawer />
 
       {/* BOTTOM NAVIGATION BAR (FIXED) */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-50 px-6 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)] h-[72px]">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-[90] px-6 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)] h-[72px]">
         <div className="flex justify-between items-center max-w-sm mx-auto h-full pt-1 pb-2">
           
           <button 

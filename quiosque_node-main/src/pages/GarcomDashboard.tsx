@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { BellRing, CheckCircle2, Clock, Users, Coffee, ChefHat, AlertCircle, X, Receipt } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { BellRing, CheckCircle2, Clock, Users, Coffee, ChefHat, AlertCircle, X, Receipt, Palmtree } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTenant } from '../stores/tenant';
 
 type MesaStatus = 'livre' | 'ocupada' | 'aguardando' | 'chamando' | 'pronto';
 
@@ -61,6 +63,8 @@ const MOCK_MESAS: Mesa[] = [
 ];
 
 export default function GarcomDashboard() {
+  const { garcomNome } = useTenant();
+  const navigate = useNavigate();
   const [filtro, setFiltro] = useState<MesaStatus | 'todas'>('todas');
   const [mesas, setMesas] = useState<Mesa[]>(MOCK_MESAS);
   const [mesaSelecionada, setMesaSelecionada] = useState<Mesa | null>(null);
@@ -70,6 +74,11 @@ export default function GarcomDashboard() {
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+
+  // Modal Novo Pedido Manual
+  const [modalNovoPedidoAberto, setModalNovoPedidoAberto] = useState(false);
+  const [novaMesaNumero, setNovaMesaNumero] = useState('');
+  const [novoClienteNome, setNovoClienteNome] = useState('');
 
   const onMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
@@ -143,29 +152,79 @@ export default function GarcomDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col pb-6">
-      {/* HEADER ESPECÍFICO DO GARÇOM */}
-      <header className="bg-slate-900 text-white pt-safe sticky top-0 z-10 shadow-md">
-        <div className="px-5 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-[#FFCC00] font-black text-2xl tracking-tight flex items-center gap-2" style={{ fontFamily: 'var(--font-titulo)' }}>
-              QUIOSQ <span className="text-slate-900 bg-[#FFCC00] text-sm px-2 py-0.5 rounded-md">GARÇOM</span>
-            </h1>
-            <p className="text-slate-300 text-sm font-medium mt-1">Olá, João • Setor Praia</p>
+    <div className="min-h-screen bg-gray-100 flex flex-col font-sans selection:bg-[#FFCC00] selection:text-black pb-6">
+      {/* HEADER DA COZINHA (Estilo Zé Delivery: Clean, Branco, Contraste Forte) */}
+      <header className="bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 text-gray-900 px-6 py-4 shadow-sm border-b border-gray-200 sticky top-0 z-50 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          {/* Logo Branding QuiosQ */}
+          <div className="w-12 h-12 bg-[#FFCC00] rounded-xl flex items-center justify-center shadow-sm border border-yellow-400">
+            <Palmtree className="text-black w-7 h-7" />
           </div>
-          
-          {/* SINO DE NOTIFICAÇÕES GERAIS / GERÊNCIA */}
-          <div 
-            className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center relative shadow-sm border border-slate-700 cursor-pointer hover:bg-slate-700 transition"
-            onClick={abrirAvisoGerencia}
-          >
-            <BellRing className="text-[#FFCC00] w-6 h-6" />
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full border-2 border-slate-900 border-solid animate-bounce">
-              1
-            </span>
+          <div>
+            <h1 className="font-black text-3xl tracking-tighter text-gray-900 leading-none flex items-baseline gap-1">
+              QuiosQ <span className="text-[#FFCC00] text-4xl leading-none">.</span>
+            </h1>
+            <div className="flex items-center gap-1.5 mt-1">
+              <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Painel do Garçom</p>
+              {garcomNome && (
+                <>
+                  <span className="text-[#FFCC00] text-xs font-black">•</span>
+                  <p className="text-gray-800 text-xs font-black uppercase tracking-widest">{garcomNome}</p>
+                </>
+              )}
+            </div>
           </div>
         </div>
-        
+
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={abrirAvisoGerencia}
+            className="relative p-2.5 bg-red-50 text-red-600 rounded-full hover:bg-red-100 active:scale-95 transition-all"
+          >
+            <AlertCircle className="w-6 h-6" />
+            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-ping"></span>
+            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+          </button>
+
+        </div>
+      </header>
+
+      {/* ESTATÍSTICAS RÁPIDAS NO TOPO (Agora light) */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="flex gap-4 px-5 py-4 max-w-7xl mx-auto">
+          <div className="flex-1 bg-gray-50 rounded-xl p-3 border border-gray-100 shadow-sm">
+             <div className="text-gray-500 mb-1 font-bold text-xs uppercase tracking-wider">Meus<br/>Atendimentos</div>
+             <div className="text-2xl font-black text-gray-900">14<span className="text-xs font-bold text-gray-400 ml-1 uppercase">mesas hj</span></div>
+          </div>
+          <div className="flex-1 bg-gray-50 rounded-xl p-3 border border-gray-100 shadow-sm">
+             <div className="text-gray-500 mb-1 font-bold text-xs uppercase tracking-wider">Pedidos<br/>Entregues</div>
+             <div className="text-2xl font-black text-gray-900">42<span className="text-xs font-bold text-gray-400 ml-1 uppercase">itens hj</span></div>
+          </div>
+        </div>
+
+        {/* BOTÃO NOVO PEDIDO MANUAL - TOPO (EXCELENTE UX PARA GARÇOM) */}
+        <div className="px-5 pb-5 max-w-7xl mx-auto">
+          <button 
+            onClick={() => setModalNovoPedidoAberto(true)} 
+            className="w-full bg-[#FFCC00] hover:bg-[#F2C200] text-slate-900 shadow-sm border border-yellow-400/50 rounded-2xl flex items-center justify-center p-4 transition-transform active:scale-95 group relative overflow-hidden"
+          >
+            {/* Efeito de luz */}
+            <div className="absolute inset-0 bg-white/20 w-[200%] truncate -translate-x-[200%] animate-[shimmer_2s_infinite]"></div>
+            
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center shrink-0">
+                <Receipt className="w-5 h-5 text-[#FFCC00]" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-black text-lg leading-none uppercase tracking-tight">Tirar Pedido Novo</h3>
+                <p className="text-slate-800 text-xs font-bold uppercase tracking-widest mt-1">Lançar & Cobrar na Máquina</p>
+              </div>
+            </div>
+          </button>
+        </div>
+      </div>
+      
+      <main className="flex-1 w-full max-w-7xl mx-auto bg-gray-100 pb-20">
         {/* FILTROS RÁPIDOS */}
         <div 
           ref={scrollRef}
@@ -216,10 +275,9 @@ export default function GarcomDashboard() {
             Livres
           </button>
         </div>
-      </header>
 
       {/* GRID DE MESAS */}
-      <main className="flex-1 p-4 sm:p-5 overflow-y-auto">
+      <div className="flex-1 p-4 sm:p-5 overflow-y-auto max-w-7xl mx-auto w-full pb-20">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {mesasFiltradas.map((mesa) => (
             <button 
@@ -294,6 +352,7 @@ export default function GarcomDashboard() {
             </button>
           ))}
         </div>
+      </div>
       </main>
 
       {/* DRAWER DA MESA SELECIONADA */}
@@ -374,7 +433,7 @@ export default function GarcomDashboard() {
             {mesaSelecionada.status === 'chamando' && (
               <button 
                 onClick={(e) => handleAtender(mesaSelecionada.id, e)}
-                className="w-full bg-red-600 text-white font-extrabold p-4 rounded-2xl uppercase tracking-wider active:scale-95 transition-transform flex items-center justify-center gap-2 shadow-lg shadow-red-600/30"
+                className="w-full bg-red-600 text-white font-extrabold p-4 rounded-2xl uppercase tracking-wider active:scale-95 transition-transform flex items-center justify-center gap-2 shadow-lg shadow-red-600/30 mb-3"
               >
                 <CheckCircle2 className="w-6 h-6" />
                 Confirmar Atendimento
@@ -384,15 +443,102 @@ export default function GarcomDashboard() {
             {mesaSelecionada.status === 'pronto' && (
               <button 
                 onClick={(e) => handleEntregarPedido(mesaSelecionada.id, e)}
-                className="w-full bg-[#FFCC00] text-slate-900 font-extrabold p-4 rounded-2xl uppercase tracking-wider active:scale-95 transition-transform flex items-center justify-center gap-2 shadow-lg shadow-[#FFCC00]/30"
+                className="w-full bg-[#10b981] text-white font-extrabold p-4 rounded-2xl uppercase tracking-wider active:scale-95 transition-transform flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 mb-3"
               >
                 <ChefHat className="w-6 h-6" />
                 Confirmar Entrega
               </button>
             )}
 
+            {/* BOTÃO ADICIONAR ITENS NESSA MESA (CENÁRIO 2: A MESA ESTÁ ABERTA E ELE FOI LÁ ANOTAR) */}
+            <button 
+              onClick={() => {
+                navigate(`/q/kiosk-1/m/${mesaSelecionada.numero}?garcom=${encodeURIComponent(garcomNome || 'Gabriel')}&cliente=${encodeURIComponent(mesaSelecionada.clientes[0]?.nome || 'Cliente')}`);
+              }} 
+              className="w-full mt-auto bg-slate-900 border border-slate-800 text-white font-extrabold p-4 rounded-2xl uppercase tracking-wider active:scale-95 transition-all flex items-center justify-center gap-3 shadow-lg shadow-black/20 hover:bg-slate-800 mb-2 relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-[#FFCC00]/10 w-[200%] truncate -translate-x-[200%] animate-[shimmer_2s_infinite]"></div>
+              <div className="bg-[#FFCC00] text-slate-900 w-8 h-8 rounded-xl flex items-center justify-center shadow-inner shrink-0 relative z-10">
+                <Receipt className="w-4 h-4 ml-[-2px] mb-[-2px]" />
+                <span className="absolute -top-1 -right-1 bg-white text-slate-900 text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-black">+</span>
+              </div>
+              <div className="flex flex-col text-left relative z-10">
+                 <span className="leading-none text-[15px]">Lançar Mais Itens</span>
+                 <span className="text-[#FFCC00] text-[10px] font-bold opacity-80 mt-1">NOVA COMANDA PARA MESA {mesaSelecionada.numero}</span>
+              </div>
+            </button>
+
           </div>
         </>
+      )}
+
+      {/* MODAL ABERTURA RÁPIDA DE COMANDA (NOVO PEDIDO PRESENCIAL) */}
+      {modalNovoPedidoAberto && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-8 duration-300">
+            <div className="p-6 relative">
+              <button 
+                onClick={() => setModalNovoPedidoAberto(false)}
+                className="absolute top-4 right-4 p-2 bg-slate-100 text-slate-500 rounded-full hover:bg-slate-200 active:scale-95 transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              
+              <div className="w-12 h-12 bg-[#FFCC00]/20 text-[#FFCC00] rounded-2xl flex items-center justify-center mb-4">
+                <Receipt className="w-6 h-6" />
+              </div>
+              
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight" style={{ fontFamily: 'var(--font-titulo)' }}>Abrir Comanda</h2>
+              <p className="text-sm text-slate-500 font-medium mb-6 mt-1 leading-relaxed">
+                Você será redirecionado ao cardápio para lançar os itens deste novo cliente.
+              </p>
+
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Número da Mesa / Tenda</label>
+                  <input 
+                    type="number"
+                    value={novaMesaNumero}
+                    onChange={e => setNovaMesaNumero(e.target.value)}
+                    placeholder="Ex: 25"
+                    className="w-full h-12 bg-slate-50 border-2 border-slate-200 rounded-xl px-4 font-bold text-slate-900 focus:outline-none focus:border-[#FFCC00] focus:bg-white transition-colors"
+                  />
+                </div>
+                
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Nome do Cliente <span className="text-slate-400 font-semibold normal-case">(Opcional)</span></label>
+                  <input 
+                    type="text"
+                    value={novoClienteNome}
+                    onChange={e => setNovoClienteNome(e.target.value)}
+                    placeholder="Ex: Carlos"
+                    className="w-full h-12 bg-slate-50 border-2 border-slate-200 rounded-xl px-4 font-bold text-slate-900 focus:outline-none focus:border-[#FFCC00] focus:bg-white transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-8">
+                <button 
+                  onClick={() => setModalNovoPedidoAberto(false)}
+                  className="flex-1 bg-slate-100 text-slate-600 font-bold py-3.5 rounded-xl hover:bg-slate-200 transition-colors active:scale-95"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  disabled={!novaMesaNumero}
+                  onClick={() => {
+                    const garcom = garcomNome || 'Gabriel';
+                    const clienteParam = novoClienteNome ? `&cliente=${encodeURIComponent(novoClienteNome)}` : '';
+                    navigate(`/q/kiosk-1/m/${novaMesaNumero}?garcom=${encodeURIComponent(garcom)}${clienteParam}`);
+                  }}
+                  className="flex-1 bg-[#FFCC00] hover:bg-[#F2C200] text-slate-900 font-black py-3.5 rounded-xl transition-all active:scale-95 shadow-lg shadow-[#FFCC00]/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Continuar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/stores/auth';
 import { useTenant } from '@/stores/tenant';
 import { toast } from 'sonner';
-import { QrCode, Store } from 'lucide-react';
+import { QrCode, Palmtree } from 'lucide-react';
 
 export default function Login() {
   const [name, setName] = useState('');
@@ -28,18 +28,32 @@ export default function Login() {
   if (!quiosqueId || !mesaId) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 p-4 text-center font-sans">
-        <div className="rounded-full bg-white p-6 shadow-xl mb-4 border-4 border-[#FFCC00]">
-          <QrCode className="h-16 w-16 text-slate-800" />
+        {/* Branding QuiosQ */}
+        <div className="mb-8 flex items-center justify-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#FFCC00] shadow-sm border border-yellow-400">
+                <Palmtree className="h-6 w-6 text-slate-900" />
+            </div>
+            <h2 className="font-black text-4xl tracking-tighter text-slate-900 leading-none flex items-baseline gap-1">
+              QuiosQ <span className="text-[#FFCC00] text-5xl leading-none">.</span>
+            </h2>
         </div>
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Escaneie o QR Code</h1>
-        <p className="mt-2 text-slate-600 max-w-md font-medium">Para acessar o cardápio e fazer pedidos, você precisa escanear o QR Code que está na sua mesa ou guarda-sol.</p>
+        
+        <div className="rounded-[2rem] bg-white p-8 shadow-xl max-w-sm border border-slate-100">
+          <div className="mx-auto bg-slate-100 w-24 h-24 rounded-2xl flex items-center justify-center mb-6">
+            <QrCode className="h-10 w-10 text-slate-400" />
+          </div>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Escaneie o<br/>QR Code</h1>
+          <p className="mt-3 text-slate-500 font-medium text-sm leading-relaxed">Para acessar o cardápio e fazer pedidos, você precisa escanear o QR Code que está na sua mesa ou barraca.</p>
+        </div>
       </div>
     );
   }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!termsAccepted) {
+    
+    // Se for cliente comum (não garçom), obriga a aceitar os termos
+    if (!termsAccepted && !garcomNome) {
       toast.error('Você precisa aceitar os Termos de Uso para continuar.');
       return;
     }
@@ -50,10 +64,10 @@ export default function Login() {
       setTimeout(() => {
         login({
           id: Date.now().toString(),
-          email: email,
+          email: email || 'sem-email@quiosq.com.br',
           user_metadata: {
             username: name,
-            phone: phone
+            phone: phone || ''
           }
         });
         toast.success(`Bem-vindo(a), ${name}!`);
@@ -76,12 +90,21 @@ export default function Login() {
             </div>
             
             <div className="relative z-10 text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 shadow-lg transform rotate-3">
-                    <Store className="h-8 w-8 text-[#FFCC00] -rotate-3" />
+                {/* Branding QuiosQ (A logo principal da plataforma) */}
+                <div className="mx-auto mb-6 flex flex-col items-center justify-center gap-1">
+                    <div className="flex items-center gap-2 bg-slate-900 px-4 py-2 rounded-2xl shadow-lg transform -rotate-1">
+                      <Palmtree className="h-5 w-5 text-[#FFCC00]" />
+                      <h2 className="font-black text-xl tracking-tighter text-white leading-none flex items-baseline gap-1">
+                        QuiosQ <span className="text-[#FFCC00] text-2xl leading-none">.</span>
+                      </h2>
+                    </div>
                 </div>
-                <CardTitle className="text-3xl font-black text-slate-900 tracking-tight uppercase" style={{ fontFamily: 'var(--font-titulo)' }}>
-                    {quiosqueId ? formatQuiosqueName(quiosqueId) : 'QuiosQ'}
+
+                {/* Título do Estabelecimento */}
+                <CardTitle className="text-3xl font-black text-slate-900 tracking-tight uppercase leading-none" style={{ fontFamily: 'var(--font-titulo)' }}>
+                    {quiosqueId ? formatQuiosqueName(quiosqueId) : 'Bem-vindo'}
                 </CardTitle>
+                
                 <div className="mt-4 flex flex-col items-center gap-2">
                     {mesaId && (
                         <span className="text-sm font-black bg-slate-900 text-white px-4 py-1.5 rounded-xl uppercase tracking-widest shadow-md">
@@ -109,8 +132,29 @@ export default function Login() {
             </CardDescription>
           </div>
           
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-1.5">
+          {garcomNome ? (
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="bg-slate-100 p-4 rounded-xl border border-slate-200 mb-4">
+                <p className="text-sm font-bold text-slate-800 text-center uppercase tracking-tight">Atendimento Presencial</p>
+                <p className="text-xs text-slate-500 text-center mt-1">O garçom {garcomNome} está tirando o pedido para esta mesa.</p>
+              </div>
+              <Button 
+                type="button" 
+                onClick={(e) => {
+                  setName('Mesa ' + mesaId); // Define um nome padrão rápido
+                  setTermsAccepted(true); // O garçom não precisa aceitar termos
+                  handleLogin(e);
+                }}
+                className="w-full h-auto py-4 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-xl text-[15px] sm:text-base uppercase tracking-wider relative overflow-hidden transition-all active:scale-95 whitespace-normal break-words" 
+                disabled={loading}
+              >
+                 <div className="absolute inset-0 bg-white/10 w-[200%] truncate -translate-x-[200%] animate-[shimmer_2s_infinite]"></div>
+                {loading ? 'ACESSANDO...' : 'ENTRAR P/ CARDÁPIO'}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-1.5">
               <Label htmlFor="name" className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Como quer ser chamado?</Label>
               <Input
                 id="name"
@@ -124,27 +168,25 @@ export default function Login() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">E-mail para o recibo</Label>
+              <Label htmlFor="email" className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">E-mail para o recibo <span className="text-slate-400 font-semibold normal-case">(Opcional)</span></Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="seu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
                 className="h-12 border-2 border-slate-200 focus-visible:border-[#FFCC00] focus-visible:ring-0 focus-visible:ring-offset-0 rounded-xl font-bold text-slate-900 placeholder:font-medium placeholder:text-slate-400 bg-slate-50"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="phone" className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">WhatsApp</Label>
+              <Label htmlFor="phone" className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">WhatsApp <span className="text-slate-400 font-semibold normal-case">(Opcional)</span></Label>
               <Input
                 id="phone"
                 type="tel"
                 placeholder="(11) 90000-0000"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                required
                 className="h-12 border-2 border-slate-200 focus-visible:border-[#FFCC00] focus-visible:ring-0 focus-visible:ring-offset-0 rounded-xl font-bold text-slate-900 placeholder:font-medium placeholder:text-slate-400 bg-slate-50"
               />
             </div>
@@ -170,6 +212,7 @@ export default function Login() {
               {loading ? 'ACESSANDO...' : 'VER CARDÁPIO'}
             </Button>
           </form>
+          )}
 
         </CardContent>
       </Card>

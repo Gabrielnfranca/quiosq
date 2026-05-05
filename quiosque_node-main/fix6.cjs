@@ -1,0 +1,8 @@
+﻿const fs = require('fs');
+let code = fs.readFileSync('C:/SISTEMA/QuiosQ/quiosq_novo/quiosque_node-main/src/pages/GarcomDashboard.tsx', 'utf8');
+
+const regex = /className=\{\r?\n\s+relative p-4.*?\\}/gs;
+
+code = code.replace(regex, "className={`relative p-4 sm:p-5 rounded-2xl flex flex-col items-start text-left transition-transform active:scale-95 border-2 ${mesa.status === 'livre' ? 'bg-transparent border-dashed border-slate-300 text-slate-400 cursor-default' : 'cursor-pointer'} ${mesa.status === 'ocupada' ? 'bg-white border-slate-100 shadow-sm text-slate-800' : ''} ${mesa.status === 'chamando' ? 'bg-red-50 border-red-500 shadow-md text-red-950 animate-in zoom-in duration-300' : ''} ${mesa.status === 'pronto' ? 'bg-slate-900 border-slate-900 shadow-md text-white' : ''}`}");
+
+fs.writeFileSync('C:/SISTEMA/QuiosQ/quiosq_novo/quiosque_node-main/src/pages/GarcomDashboard.tsx', code, 'utf8');

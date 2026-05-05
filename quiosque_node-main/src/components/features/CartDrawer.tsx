@@ -129,7 +129,7 @@ export function CartDrawer() {
             
             <button
               onClick={handleCheckout}
-              className="w-full bg-[#FFCC00] hover:bg-[#F2C200] text-slate-900 font-black uppercase tracking-wide transition-all h-[60px] rounded-2xl shadow-md flex items-center justify-between px-6 active:scale-[0.98] mb-4"
+              className="w-full bg-[#FFCC00] hover:bg-[#F2C200] text-slate-900 font-black uppercase tracking-wide transition-all h-[60px] rounded-2xl shadow-md flex items-center justify-between px-6 active:scale-[0.98] mb-24"
             >
               <span className="text-lg">Ir para Pagamento</span>
               <div className="w-8 h-8 bg-slate-900/10 rounded-full flex items-center justify-center">
